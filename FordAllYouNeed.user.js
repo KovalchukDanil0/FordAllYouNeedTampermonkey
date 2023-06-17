@@ -3,6 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.2
 // @downloadURL  https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
+// @updateURL    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.ford.pt/*
@@ -33,8 +34,6 @@
   } else if (regexJira) {
     WFButton();
   }
-
-// test update
   
   function WFButton() {
     var buttonsContainer = document.querySelector(
