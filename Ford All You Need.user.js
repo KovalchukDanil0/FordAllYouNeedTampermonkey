@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Ford All You Need
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @updateURL    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/blob/4871985c4061f20284f97c06586584889d4b51e8/Ford%20All%20You%20Need.user.js
 // @downloadURL  https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/blob/4871985c4061f20284f97c06586584889d4b51e8/Ford%20All%20You%20Need.user.js
 // @description  try to take over the world!
@@ -35,6 +35,8 @@
     WFButton();
   }
 
+// test update
+  
   function WFButton() {
     var buttonsContainer = document.querySelector(
       "#opsbar-edit-issue_container"
