@@ -2,8 +2,8 @@
 // @name         Ford All You Need
 // @namespace    http://tampermonkey.net/
 // @version      0.2
-// @updateURL    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/blob/4871985c4061f20284f97c06586584889d4b51e8/Ford%20All%20You%20Need.user.js
-// @downloadURL  https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/blob/4871985c4061f20284f97c06586584889d4b51e8/Ford%20All%20You%20Need.user.js
+// @updateURL    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/blob/main/FordAllYouNeed.user.js
+// @downloadURL  https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/blob/main/FordAllYouNeed.user.js
 // @description  try to take over the world!
 // @author       You
 // @match        https://www.ford.pt/*
