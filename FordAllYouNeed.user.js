@@ -1,14 +1,71 @@
 // ==UserScript==
 // @name         Ford All You Need
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @downloadURL  https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
 // @updateURL    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
 // @description  try to take over the world!
-// @author       You
-// @match        https://www.ford.pt/*
-// @match        https://wwwperf.brandeuauthorlb.ford.com/*
+// @author       Gomofob
 // @match        https://jira.uhub.biz/browse/*
+//
+// @match        https://www.ford.ie/*
+// @match        https://www.ford.fi/*
+// @match        https://www.ford.cz/*
+// @match        https://www.ford.hu/*
+// @match        https://www.ford.gr/*
+// @match        https://www.ford.ro/*
+// @match        https://www.ford.lu/*
+// @match        https://www.ford.ru/*
+//
+// @match        https://www.fr.ford.be/*
+// @match        https://www.nl.ford.be/*
+//
+// @match        https://www.de.ford.ch/*
+// @match        https://www.fr.ford.ch/*
+// @match        https://www.it.ford.ch/*
+//
+// @match        https://www.ford.co.uk/*
+// @match        https://www.ford.de/*
+// @match        https://www.ford.es/*
+// @match        https://www.ford.fr/*
+// @match        https://www.ford.nl/*
+// @match        https://www.ford.it/*
+// @match        https://www.ford.no/*
+// @match        https://www.ford.at/*
+// @match        https://www.ford.pt/*
+// @match        https://www.ford.pl/*
+// @match        https://www.ford.dk/*
+//
+// @match        https://wwwperf-ie.brandeulb.ford.com/*
+// @match        https://wwwperf-fi.brandeulb.ford.com/*
+// @match        https://wwwperf-cz.brandeulb.ford.com/*
+// @match        https://wwwperf-hu.brandeulb.ford.com/*
+// @match        https://wwwperf-gr.brandeulb.ford.com/*
+// @match        https://wwwperf-ro.brandeulb.ford.com/*
+// @match        https://wwwperf-lu.brandeulb.ford.com/*
+// @match        https://wwwperf-ru.brandeulb.ford.com/*
+//
+// @match        https://wwwperf-befr.brandeulb.ford.com/*
+// @match        https://wwwperf-benl.brandeulb.ford.com/*
+//
+// @match        https://wwwperf-chde.brandeulb.ford.com/*
+// @match        https://wwwperf-chfr.brandeulb.ford.com/*
+// @match        https://wwwperf-chit.brandeulb.ford.com/*
+//
+// @match        https://wwwperf-beta-couk.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-fe.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-es.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-fr.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-nl.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-it.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-no.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-at.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-pt.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-pl.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-dk.brandeulb.ford.com/*
+//
+// @match        https://wwwperf.brandeuauthorlb.ford.com/*
+//
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=ford.com
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -19,22 +76,46 @@
 (function () {
   "use strict";
 
-  let url = window.location.href;
+  const url = window.location.href;
 
   var regexWorkflow =
     /wwwperf\.brandeuauthorlb\.ford\.com(\/(?:cf#|editor\.html))?\/etc\/workflow\/packages\/ESM/gm;
   var regexJira = /jira\.uhub\.biz\/browse\//gm;
-  var regexWCMWorkflows = "";
+  var regexWCMWorkflows = /somethingshitfaggot/gm;
 
-  GM.registerMenuCommand("Hello, world (simple)", () => WFButton());
+  var marketsInBeta = [
+    "www.ford.co.uk",
+    "www.ford.de",
+    "www.ford.es",
+    "www.ford.fr",
+    "www.ford.nl",
+    "www.ford.it",
+    "www.ford.no",
+    "www.ford.at",
+    "www.ford.pt",
+    "www.ford.pl",
+    "www.ford.dk",
+  ];
 
-  if (regexWCMWorkflows) {
+  var market = "";
+  var localLanguage = "";
+
+  var regexLive =
+    /(.+)?(secure|www)(\.(\w\w))?(\.ford)(\.(\w\w))(\.(\w\w))?(.+)?/gm;
+  var regexPerf =
+    /((?:.+)?wwwperf(?:-beta)?-)(\w\w)?(\w\w)(\.brandeulb\.ford\.com(?:.+)?)/gm;
+  var regexEditor =
+    /wwwperf\.brandeuauthorlb\.ford\.com(?:\/(editor\.html|cf#))?\/content\/guxeu(?:-beta)?\//gm;
+
+  AddMenus();
+
+  if (url.match(regexWCMWorkflows)) {
   } else if (url.match(regexWorkflow)) {
     WorkflowFixes();
-  } else if (regexJira) {
+  } else if (url.match(regexJira)) {
     WFButton();
   }
-  
+
   function WFButton() {
     var buttonsContainer = document.querySelector(
       "#opsbar-edit-issue_container"
@@ -55,10 +136,10 @@
   function CreateWF() {
     var regexRemoveSpaces = /\r?\n\s+|\r/gm;
 
-    var market = document
+    market = document
       .querySelector("#customfield_13300-val")
       .textContent.replace(regexRemoveSpaces, "");
-    var localLanguage = document
+    localLanguage = document
       .querySelector("#customfield_15000-val")
       .textContent.replace(regexRemoveSpaces, "");
 
@@ -71,6 +152,8 @@
 
     var test = newPage.document.querySelector("#cq-gen91");
     newPage.alert(test);
+
+    // todo auto-create WF
   }
 
   function TextToWFPath(market, localLanguage) {
@@ -92,11 +175,11 @@
       ".content-conf > .configSection > div a"
     );
     for (let index = 0; index < elements.length; index++) {
-      elements[index].href = determineIfBeta(elements[index].href);
+      elements[index].href = AddBetaToLink(elements[index].href);
     }
   }
 
-  function determineIfBeta(link = "test") {
+  function AddBetaToLink(link = "test") {
     var regexDetermineBeta =
       /(.+)?(\/(?:editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(?:.+)?)/gm;
     if (link.includes("/guxeu-beta/")) {
@@ -107,10 +190,86 @@
     return link;
   }
 
+  function AddMenus() {
+    if (url.match(regexLive)) {
+      GM.registerMenuCommand("TO PERF", () => ToEnvironment("perf"));
+    } else if (url.match(regexPerf)) {
+      GM.registerMenuCommand("TO LIVE", () => ToEnvironment("live"));
+    } else if (url.match(regexEditor)) {
+      GM.registerMenuCommand("TO PERF", () => ToEnvironment("perf"));
+      GM.registerMenuCommand("TO LIVE", () => ToEnvironment("live"));
+    }
+  }
+
   function ToEnvironment(env) {
-    var regexEditor =
-      /wwwperf\.brandeuauthorlb\.ford\.com(?:\/(editor\.html|cf#))?\/content\/guxeu(?:-beta)?\//gm;
-    var regexPerf = /wwwperf-beta-\w\w(?:\w\w)?\.brandeulb\.ford\.com/gm;
-    var regexLive = /www(?:\.\w\w)?\.ford\.\w\w(?:\.\w\w)?/gm;
+    var regexUrlPart = /.*?\b\/(.+)|(.+)/gm;
+    var urlPart = url.replace(regexUrlPart, "$1");
+
+    market = "";
+    localLanguage = "";
+
+    var beta = "";
+    if (url.match(regexLive)) {
+      if (marketsInBeta.some((link) => url.includes(link))) {
+        beta = "-beta";
+      }
+
+      if (url.match(/www\.ford\.\w\w\.\w\w/gm)) {
+        localLanguage = url.replace(regexLive, "$9");
+      } else {
+        localLanguage = url.replace(regexLive, "$4");
+      }
+      market = url.replace(regexLive, "$7");
+
+      switch (env) {
+        case "perf":
+          LiveToPerf(market, localLanguage, beta, urlPart);
+      }
+    } else if (url.match(regexPerf)) {
+      if (url.includes("-beta")) {
+        beta = "-beta";
+      }
+
+      var britain = "";
+      if (url.match(/wwwperf-beta-\w\w\.brandeulb\.ford\.com/gm)) {
+        market = url.replace(regexPerf, "$3");
+      } else {
+        market = url.replace(regexPerf, "$2");
+        if (market == "co") {
+          britain = url.replace(regexPerf, ".$3");
+        } else {
+          localLanguage = url.replace(regexPerf, "$3.");
+        }
+      }
+
+      switch (env) {
+        case "live":
+          PerfToLive(localLanguage, market, britain, urlPart);
+      }
+    }
+  }
+
+  function LiveToPerf(market, localLanguage, beta, urlPart) {
+    window.open(
+      "https://wwwperf" +
+        beta +
+        "-" +
+        market +
+        localLanguage +
+        ".brandeulb.ford.com/" +
+        urlPart
+    );
+  }
+
+  function PerfToLive(localLanguage, market, britain, urlPart) {
+    window.open(
+      "https://www." +
+        localLanguage +
+        "ford." +
+        market +
+        britain +
+        "/" +
+        urlPart
+    );
   }
 })();
