@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Ford All You Need
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @downloadURL  https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
 // @updateURL    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
 // @description  try to take over the world!
@@ -53,7 +53,7 @@
 // @match        https://wwwperf-chit.brandeulb.ford.com/*
 //
 // @match        https://wwwperf-beta-couk.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-fe.brandeulb.ford.com/*
+// @match        https://wwwperf-beta-de.brandeulb.ford.com/*
 // @match        https://wwwperf-beta-es.brandeulb.ford.com/*
 // @match        https://wwwperf-beta-fr.brandeulb.ford.com/*
 // @match        https://wwwperf-beta-nl.brandeulb.ford.com/*
@@ -83,43 +83,55 @@
   var regexJira = /jira\.uhub\.biz\/browse\//gm;
   var regexWCMWorkflows =
     /wwwperf\.brandeuauthorlb\.ford\.com\/miscadmin#\/etc\/workflow\/packages\/ESM\//gm;
+  var regexResourceResolver =
+    /wwwperf\.brandeuauthorlb\.ford\.com(\/(?:cf#|editor\.html))?\/etc\/guxacc\/tools\/resource\-resolver\-tool/gm;
+
+  var regexLive =
+    /(?:.+)?(?:secure|www)(?:\.(\w\w))?\.ford\.(\w\w)(?:\.(\w\w))?(?:.+)?/gm;
+  var regexPerf =
+    /(?:.+)?wwwperf(?:-beta)?-(\w\w)(\w\w)?(\.brandeulb\.ford\.com(?:.+)?)/gm;
+  var regexAuthor =
+    /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/content\/guxeu(?:-beta)?\/(\w\w)\/(\w\w)_\w\w\/(?:.+)?/gm;
 
   var marketsInBeta = [
-    "www.ford.co.uk",
-    "www.ford.de",
-    "www.ford.es",
-    "www.ford.fr",
-    "www.ford.nl",
-    "www.ford.it",
-    "www.ford.no",
-    "www.ford.at",
-    "www.ford.pt",
-    "www.ford.pl",
-    "www.ford.dk",
+    "co",
+    "de",
+    "es",
+    "fr",
+    "nl",
+    "it",
+    "no",
+    "at",
+    "pt",
+    "pl",
+    "dk",
   ];
+  function IsMarketInBeta(market) {
+    if (marketsInBeta.some((link) => market.includes(link))) return true;
+
+    return false;
+  }
 
   var market = "";
   var localLanguage = "";
 
-  var regexLive =
-    /(.+)?(secure|www)(\.(\w\w))?(\.ford)(\.(\w\w))(\.(\w\w))?(.+)?/gm;
-  var regexPerf =
-    /((?:.+)?wwwperf(?:-beta)?-)(\w\w)?(\w\w)(\.brandeulb\.ford\.com(?:.+)?)/gm;
-  var regexAuthor =
-    /wwwperf\.brandeuauthorlb\.ford\.com(?:\/(editor\.html|cf#))?\/content\/guxeu(?:-beta)?\//gm;
+  (function AddMenus() {
+    var ifNotLive = !url.match(regexLive);
+    var ifNotPerf = !url.match(regexPerf);
+    var ifNotAuthor = !url.match(regexAuthor);
 
-  AddMenus();
-  function AddMenus() {
-    if (!url.match(regexLive)) {
+    if (ifNotLive && ifNotPerf && ifNotAuthor) return;
+
+    if (ifNotLive) {
       GM.registerMenuCommand("TO LIVE", () => ToEnvironment("live"));
     }
-    if (!url.match(regexPerf)) {
+    if (ifNotPerf) {
       GM.registerMenuCommand("TO PERF", () => ToEnvironment("perf"));
     }
-    if (!url.match(regexAuthor)) {
+    if (ifNotAuthor) {
       GM.registerMenuCommand("TO AUTHOR", () => ToEnvironment("author"));
     }
-  }
+  })();
 
   if (url.match(regexWCMWorkflows)) {
     CreateWF();
@@ -127,6 +139,8 @@
     WorkflowFixes();
   } else if (url.match(regexJira)) {
     WFButton();
+  } else if (url.match(regexResourceResolver)) {
+    ResourceResolverGetOrigPath();
   }
 
   function WFButton() {
@@ -147,7 +161,7 @@
   }
 
   function CreateWFButton() {
-    var regexRemoveSpaces = /\r?\n\s+|\r/gm;
+    var regexRemoveSpaces = /^\s+|\s+$|\s+(?=\s)/gm;
 
     market = document
       .querySelector("#customfield_13300-val")
@@ -156,7 +170,12 @@
       .querySelector("#customfield_15000-val")
       .textContent.replace(regexRemoveSpaces, "");
 
-    GM_setValue("WFTitle", document.querySelector("#summary-val").textContent);
+    GM_setValue(
+      "WFTitle",
+      document
+        .querySelector("#summary-val")
+        .textContent.replace(regexRemoveSpaces, "")
+    );
     GM_setValue(
       "WFName",
       document
@@ -186,14 +205,15 @@
         "#cq-gen75 > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div"
       );
       if (firstItemInList == null) return;
+      clearInterval(intervaID);
 
       var button = document.getElementById("cq-gen91");
       button.click();
-      clearInterval(intervaID);
 
       intervaID = setInterval(function () {
         var form = document.getElementById("ext-comp-1079");
         if (form == null) return;
+        clearInterval(intervaID);
 
         form.value = WFTitle;
         form.insertAdjacentHTML(
@@ -204,7 +224,10 @@
         form = document.getElementById("ext-comp-1080");
         form.value = WFName;
 
-        clearInterval(intervaID);
+        var promotionButton = document.querySelector(
+          "#ext-comp-1076 > div:nth-child(3)"
+        );
+        promotionButton.click();
       }, 500);
     }, 500);
   }
@@ -212,18 +235,35 @@
   function TextToWFPath(market, localLanguage) {
     var fullPath;
     switch (market) {
-      case "Ford of Poland":
-        fullPath = "PLPL";
-      case "Ford of Czech Republic":
-        fullPath = "CSCZ";
-      case "Ford of Italy":
-        fullPath = "ITIT";
+      default:
+        return;
+        break;
       case "Ford of Belgium":
         fullPath = "BE";
         switch (localLanguage) {
           case "Dutch":
             fullPath += "/BENL";
+            break;
+          case "French":
+            fullPath += "/BEFR";
+            break;
         }
+        break;
+      case "Ford of Poland":
+        fullPath = "PLPL";
+        break;
+      case "Ford of Czech Republic":
+        fullPath = "CSCZ";
+        break;
+      case "Ford of Poland":
+        fullPath = "PLPL";
+        break;
+      case "Ford of Italy":
+        fullPath = "ITIT";
+        break;
+      case "Ford of Netherlands":
+        fullPath = "NLNL";
+        break;
     }
 
     return fullPath;
@@ -250,76 +290,255 @@
   }
 
   function ToEnvironment(env) {
-    var regexUrlPart = /.*?\b\/(.+)|(.+)/gm;
-    var urlPart = url.replace(regexUrlPart, "$1");
+    var urlPart =
+      window.location.pathname + window.location.search + window.location.hash;
+
+    if (urlPart == "/") {
+      urlPart = "";
+    }
 
     market = "";
     localLanguage = "";
-
+    var britain = "";
     var beta = "";
+
+    // Live
     if (url.match(regexLive)) {
-      if (marketsInBeta.some((link) => url.includes(link))) {
-        beta = "-beta";
-      }
-
       if (url.match(/www\.ford\.\w\w\.\w\w/gm)) {
-        localLanguage = url.replace(regexLive, "$9");
+        localLanguage = url.replace(regexLive, "$3");
       } else {
-        localLanguage = url.replace(regexLive, "$4");
+        localLanguage = url.replace(regexLive, "$1");
       }
-      market = url.replace(regexLive, "$7");
+      market = url.replace(regexLive, "$2");
 
-      switch (env) {
-        case "perf":
-          LiveToPerf(market, localLanguage, beta, urlPart);
-      }
-    } else if (url.match(regexPerf)) {
-      if (url.includes("-beta")) {
+      if (IsMarketInBeta(market)) {
         beta = "-beta";
       }
 
-      var britain = "";
-      if (url.match(/wwwperf-beta-\w\w\.brandeulb\.ford\.com/gm)) {
-        market = url.replace(regexPerf, "$3");
-      } else {
-        market = url.replace(regexPerf, "$2");
-        if (market == "co") {
-          britain = url.replace(regexPerf, ".$3");
-        } else {
-          localLanguage = url.replace(regexPerf, "$3.");
-        }
+      DetermineEnv(env, market, localLanguage, beta, urlPart);
+    }
+    // Perf
+    else if (url.match(regexPerf)) {
+      if (url.match(/wwwperf-beta-it\.brandeulb\.ford\.com/gm)) {
       }
 
-      switch (env) {
-        case "live":
-          PerfToLive(localLanguage, market, britain, urlPart);
+      market = url.replace(regexPerf, "$1");
+      localLanguage = url.replace(regexPerf, "$2");
+
+      if (url.includes("-beta")) beta = "-beta";
+
+      DetermineEnv(env, market, localLanguage, beta, urlPart);
+    }
+    // Author
+    else if (url.match(regexAuthor)) {
+      market = url.replace(regexAuthor, "$1");
+
+      localLanguage = url.replace(regexAuthor, "$2");
+      switch (localLanguage) {
+        case "en":
+          switch (market) {
+            case "co":
+              localLanguage = "uk";
+              break;
+            case "ie":
+              localLanguage = "";
+              break;
+          }
+          break;
+        case "cs":
+          localLanguage = "";
+          break;
+        case "el":
+          localLanguage = "";
+          break;
+        case "lu":
+          switch (market) {
+            case "fr":
+              localLanguage = "";
+              break;
+          }
+          break;
+        case "de":
+          switch (market) {
+            case "at":
+              localLanguage = "";
+              break;
+          }
+          break;
+        case "da":
+          localLanguage = "";
+          break;
+      }
+      if (localLanguage == market) localLanguage = "";
+
+      if (IsMarketInBeta(market)) {
+        beta = "-beta";
+
+        var intervaID = setInterval(function () {
+          var iframe = document.getElementById("ContentFrame");
+          if (iframe == null) return;
+          clearInterval(intervaID);
+
+          var urlPart = iframe.contentWindow.document
+            .querySelector(
+              "#accelerator-page > div.info-banner > div:nth-child(1)"
+            )
+            .textContent.replace(
+              /(?:[\s\S]*)?Your real URL will be : \.\.\. \/home(\S+)?(?:[\s\S]*)?/gm,
+              "$1"
+            );
+
+          DetermineEnv(env, market, localLanguage, beta, urlPart);
+        }, 500);
+      } else {
+        urlPart = urlPart.replace(
+          /(?:.+)?\/content.+\/home(.+)?\.html(?:.+)?/gm,
+          "$1"
+        );
+
+        DetermineEnv(env, market, localLanguage, beta, urlPart);
       }
     }
   }
 
-  function LiveToPerf(market, localLanguage, beta, urlPart) {
+  // TODO PROD
+
+  function DetermineEnv(env, market, localLanguage, beta, urlPart) {
+    if (market == "") return;
+
+    switch (env) {
+      case "live":
+        MakeLive(market, localLanguage, urlPart);
+        break;
+      case "perf":
+        MakePerf(market, localLanguage, beta, urlPart);
+        break;
+      case "author":
+        MakeAuthor(market, localLanguage, beta, urlPart);
+        break;
+    }
+  }
+
+  function MakeLive(market, localLanguage, urlPart) {
+    var britain = "";
+    if (market == "co") {
+      britain = localLanguage;
+      market += ".";
+      localLanguage = "";
+    }
+
+    if (localLanguage != "") localLanguage += ".";
+
+    window.open(
+      "https://www." + localLanguage + "ford." + market + britain + urlPart,
+      "_self"
+    );
+  }
+
+  function MakePerf(market, localLanguage, beta, urlPart) {
     window.open(
       "https://wwwperf" +
         beta +
         "-" +
         market +
         localLanguage +
-        ".brandeulb.ford.com/" +
+        ".brandeulb.ford.com" +
         urlPart,
       "_self"
     );
   }
 
-  function PerfToLive(localLanguage, market, britain, urlPart) {
+  function MakeAuthor(market, localLanguage, beta, urlPart) {
+    if (market == "co") {
+      [market, localLanguage] = [localLanguage, market];
+    }
+
+    if (localLanguage == "") localLanguage = market;
+
+    var wrongLink =
+      "/content/guxeu" +
+      beta +
+      "/" +
+      market +
+      "/" +
+      FixLocalLanguage(localLanguage) +
+      "_" +
+      FixMarket(market) +
+      "/home" +
+      urlPart;
+
+    if (beta == "-beta") {
+      GM_setValue("WrongLink", wrongLink);
+      window.open(
+        "https://wwwperf.brandeuauthorlb.ford.com/cf#/etc/guxacc/tools/resource-resolver-tool.html",
+        "_self"
+      );
+    } else {
+      MakeRealAuthorLink(wrongLink);
+    }
+  }
+
+  function MakeRealAuthorLink(link) {
     window.open(
-      "https://www." +
-        localLanguage +
-        "ford." +
-        market +
-        britain +
-        "/" +
-        urlPart,
+      "https://wwwperf.brandeuauthorlb.ford.com/" +
+        "editor.html" +
+        link +
+        ".html",
       "_self"
     );
+  }
+
+  // сделать одностороннюю проверку массива
+  var m1 = ["gb"];
+  var m2 = ["uk"];
+  function FixMarket(market) {
+    var idx = m1.indexOf(market);
+    if (idx >= 0) return m2[idx];
+
+    idx = m2.indexOf(market);
+    if (idx >= 0) return m1[idx];
+
+    return market;
+  }
+
+  var ll1 = ["ie", "en"];
+  var ll2 = ["en", "co"];
+  function FixLocalLanguage(localLanguage, market = "") {
+    var idx = ll1.indexOf(localLanguage);
+    if (idx >= 0) return ll2[idx];
+
+    idx = ll2.indexOf(localLanguage);
+    if (idx >= 0) return ll1[idx];
+
+    return localLanguage;
+  }
+
+  function ResourceResolverGetOrigPath() {
+    var wrongLink = GM_getValue("WrongLink", null);
+    if (wrongLink == null) return;
+
+    var intervaID = setInterval(function () {
+      var iframe = document.querySelector("#cq-cf-frame");
+      if (iframe == null) return;
+
+      var form = iframe.contentWindow.document.querySelector("#aliasPath");
+      if (form == null) return;
+      clearInterval(intervaID);
+
+      form.value = wrongLink;
+
+      var button = iframe.contentWindow.document.querySelector("#resolvertool");
+      button.click();
+      var intervaID = setInterval(function () {
+        var originalPath =
+          iframe.contentWindow.document.querySelector(
+            "#originalPath"
+          ).textContent;
+        if (originalPath.trim().length == 0) return;
+        clearInterval(intervaID);
+
+        MakeRealAuthorLink(originalPath);
+      }, 500);
+    }, 500);
   }
 })();
