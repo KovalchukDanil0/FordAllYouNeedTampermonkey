@@ -1,6 +1,3 @@
-const regexWorkflow =
-  /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:cf#|editor\.html))?\/etc\/workflow\/packages\/ESM\/\w\w(?:\/\w\w\w\w)?\/(.+)\.html(?:.+)?/gm;
-
 class AEM {
   constructor(height, width) {
     this.height = height;
@@ -8,6 +5,8 @@ class AEM {
   }
 
   static get rwf() {
+    const regexWorkflow =
+      /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:cf#|editor\.html))?\/etc\/workflow\/packages\/ESM\/\w\w(?:\/\w\w\w\w)?\/(.+)\.html(?:.+)?/gm;
     return regexWorkflow;
   }
 
