@@ -47,12 +47,36 @@ class AEM {
     return regexAuthor;
   }
 
-  get area() {
-    return this.calcArea();
-  }
+  CreateWF(WFTitle, WFName) {
+    if (!window.location.href.match(regexWCMWorkflows)) return;
+    if (WFTitle == null || WFName == null) return;
 
-  calcArea() {
-    return this.height * this.width;
+    var intervaID = setInterval(function () {
+      var firstItemInList = document.querySelector(
+        "#cq-gen75 > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div"
+      );
+      if (firstItemInList == null) return;
+      clearInterval(intervaID);
+
+      var button = document.getElementById("cq-gen91");
+      button.click();
+
+      intervaID = setInterval(function () {
+        var form = document.getElementById("ext-comp-1079");
+        if (form == null) return;
+        clearInterval(intervaID);
+
+        form.value = WFTitle;
+
+        form = document.getElementById("ext-comp-1080");
+        form.value = WFName;
+
+        var promotionButton = document.querySelector(
+          "#ext-comp-1076 > div:nth-child(3)"
+        );
+        promotionButton.click();
+      }, 500);
+    }, 500);
   }
 
   *getSides() {
