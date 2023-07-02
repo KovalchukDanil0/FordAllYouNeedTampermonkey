@@ -1,5 +1,5 @@
 class GG {
-  calcArea() {
+  test() {
     alert("test");
   }
 }
