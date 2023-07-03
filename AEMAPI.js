@@ -1,3 +1,5 @@
+const url = window.location.href;
+
 const regexWorkflow =
   /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:cf#|editor\.html))?\/etc\/workflow\/packages\/ESM\/\w\w(?:\/\w\w\w\w)?\/(.+)\.html(?:.+)?/gm;
 const regexJira = /jira\.uhub\.biz\/browse\//gm;
@@ -28,8 +30,6 @@ const marketsInBeta = [
 ];
 
 class AEM {
-  static url = window.location.href;
-
   static ifLive = url.match(regexLive);
   static ifPerf = url.replace(regexPerf, "$1") == "perf";
   static ifProd = url.replace(regexPerf, "$1") == "prod";
