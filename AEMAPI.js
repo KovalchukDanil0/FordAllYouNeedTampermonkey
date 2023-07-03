@@ -47,11 +47,11 @@ class AEM {
     return regexAuthor;
   }
 
-  test() {
+  static test() {
     alert("test");
   }
 
-  createWF(WFTitle, WFName) {
+  static createWF(WFTitle, WFName) {
     if (!window.location.href.match(regexWCMWorkflows)) return;
     if (WFTitle == null || WFName == null) return;
 
@@ -81,12 +81,5 @@ class AEM {
         promotionButton.click();
       }, 500);
     }, 500);
-  }
-
-  *getSides() {
-    yield this.height;
-    yield this.width;
-    yield this.height;
-    yield this.width;
   }
 }
