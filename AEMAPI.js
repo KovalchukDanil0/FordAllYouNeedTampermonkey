@@ -13,11 +13,31 @@ const regexPerf =
 const regexAuthor =
   /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(?:\/(editor\.html|cf#))?\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?/gm;
 
+const marketsInBeta = [
+  "uk",
+  "de",
+  "es",
+  "fr",
+  "nl",
+  "it",
+  "no",
+  "at",
+  "pt",
+  "pl",
+  "dk",
+];
+
 class AEM {
   static url = window.location.href;
 
-  constructor() {
-    alert("something");
+  static ifLive = url.match(regexLive);
+  static ifPerf = url.replace(regexPerf, "$1") == "perf";
+  static ifProd = url.replace(regexPerf, "$1") == "prod";
+  static ifAuthor = url.match(regexAuthor);
+
+  isMarketInBeta(market) {
+    if (marketsInBeta.some((link) => market.includes(link))) return true;
+    return false;
   }
 
   static get regexWorkflow() {
@@ -36,21 +56,13 @@ class AEM {
     return regexResourceResolver;
   }
 
-  static ifLive = url.match(regexLive);
-
   static get regexLive() {
     return regexLive;
   }
 
-  static ifPerf = url.replace(regexPerf, "$1") == "perf";
-
-  static ifProd = url.replace(AEM.regexPerf, "$1") == "prod";
-
   static get regexPerf() {
     return regexPerf;
   }
-
-  static ifAuthor = url.match(AEM.regexAuthor);
 
   static get regexAuthor() {
     return regexAuthor;
@@ -88,5 +100,14 @@ class AEM {
     }, 500);
   }
 
-  static;
+  addBetaToLink(link) {
+    const regexDetermineBeta =
+      /(.+)?(\/(?:editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(?:.+)?)/gm;
+    if (link.includes("/guxeu-beta/")) {
+      link = link.replace(regexDetermineBeta, "$1/editor.html$3");
+    } else {
+      link = link.replace(regexDetermineBeta, "$1/cf#$3");
+    }
+    return link;
+  }
 }
