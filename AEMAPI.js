@@ -14,9 +14,10 @@ const regexAuthor =
   /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(?:\/(editor\.html|cf#))?\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?/gm;
 
 class AEM {
-  constructor(height, width) {
-    this.height = height;
-    this.width = width;
+  static url = window.location.href;
+
+  constructor() {
+    alert("something");
   }
 
   static get regexWorkflow() {
@@ -35,24 +36,28 @@ class AEM {
     return regexResourceResolver;
   }
 
+  static ifLive = url.match(regexLive);
+
   static get regexLive() {
     return regexLive;
   }
+
+  static ifPerf = url.replace(regexPerf, "$1") == "perf";
+
+  static ifProd = url.replace(AEM.regexPerf, "$1") == "prod";
 
   static get regexPerf() {
     return regexPerf;
   }
 
+  static ifAuthor = url.match(AEM.regexAuthor);
+
   static get regexAuthor() {
     return regexAuthor;
   }
 
-  static test() {
-    alert("test");
-  }
-
   static createWF(WFTitle, WFName) {
-    if (!window.location.href.match(regexWCMWorkflows)) return;
+    if (!url.match(regexWCMWorkflows)) return;
     if (WFTitle == null || WFName == null) return;
 
     var intervaID = setInterval(function () {
@@ -82,4 +87,6 @@ class AEM {
       }, 500);
     }, 500);
   }
+
+  static;
 }
