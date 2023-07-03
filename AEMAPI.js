@@ -35,7 +35,7 @@ class AEM {
   static ifProd = url.replace(regexPerf, "$1") == "prod";
   static ifAuthor = url.match(regexAuthor);
 
-  isMarketInBeta(market) {
+  static isMarketInBeta(market) {
     if (marketsInBeta.some((link) => market.includes(link))) return true;
     return false;
   }
@@ -100,7 +100,7 @@ class AEM {
     }, 500);
   }
 
-  addBetaToLink(link) {
+  static addBetaToLink(link) {
     const regexDetermineBeta =
       /(.+)?(\/(?:editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(?:.+)?)/gm;
     if (link.includes("/guxeu-beta/")) {
