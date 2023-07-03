@@ -47,7 +47,7 @@ class AEM {
     return regexAuthor;
   }
 
-  CreateWF(WFTitle, WFName) {
+  createWF(WFTitle, WFName) {
     if (!window.location.href.match(regexWCMWorkflows)) return;
     if (WFTitle == null || WFName == null) return;
 
