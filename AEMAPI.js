@@ -30,9 +30,61 @@ const marketsInBeta = [
 ];
 
 class AEM {
+  static get regexWorkflow() {
+    return regexWorkflow;
+  }
+
+  static get ifWorkflow() {
+    return url.match(regexWorkflow);
+  }
+
+  static rr = class A {
+    G() {
+      alert("");
+    }
+  };
+
+  static get regexJira() {
+    return regexJira;
+  }
+
+  static get ifJira() {
+    return url.match(regexJira);
+  }
+
+  static get regexWCMWorkflows() {
+    return regexWCMWorkflows;
+  }
+
+  static get ifWCMWorkflows() {
+    return url.match(regexWCMWorkflows);
+  }
+
+  static get regexResourceResolver() {
+    return regexResourceResolver;
+  }
+
+  static get ifResourceResolver() {
+    return url.match(regexResourceResolver);
+  }
+
+  static get regexLive() {
+    return regexLive;
+  }
+
   static ifLive = url.match(regexLive);
+
+  static get regexPerf() {
+    return regexPerf;
+  }
+
   static ifPerf = url.replace(regexPerf, "$1") == "perf";
   static ifProd = url.replace(regexPerf, "$1") == "prod";
+
+  static get regexAuthor() {
+    return regexAuthor;
+  }
+
   static ifAuthor = url.match(regexAuthor);
 
   static isMarketInBeta(market) {
@@ -40,36 +92,7 @@ class AEM {
     return false;
   }
 
-  static get regexWorkflow() {
-    return regexWorkflow;
-  }
-
-  static get regexJira() {
-    return regexJira;
-  }
-
-  static get regexWCMWorkflows() {
-    return regexWCMWorkflows;
-  }
-
-  static get regexResourceResolver() {
-    return regexResourceResolver;
-  }
-
-  static get regexLive() {
-    return regexLive;
-  }
-
-  static get regexPerf() {
-    return regexPerf;
-  }
-
-  static get regexAuthor() {
-    return regexAuthor;
-  }
-
   static createWF(WFTitle, WFName) {
-    if (!url.match(regexWCMWorkflows)) return;
     if (WFTitle == null || WFName == null) return;
 
     var intervaID = setInterval(function () {
@@ -109,5 +132,25 @@ class AEM {
       link = link.replace(regexDetermineBeta, "$1/cf#$3");
     }
     return link;
+  }
+
+  static changeUI() {
+    const regexChangeUI =
+      /(.+)?(wwwperf\.brandeu(?:author)?lb\.ford\.com)(?:\/)?(editor\.html|cf#)?(\/content)(.+)?/gm;
+
+    var authorUI = url.replace(regexChangeUI, "$3");
+    var newUrl;
+
+    if (authorUI == "editor.html") {
+      newUrl = url.replace(regexChangeUI, "$1$2/cf#$4$5");
+    } else {
+      newUrl = url.replace(regexChangeUI, "$1$2/editor.html$4$5");
+    }
+
+    window.open(newUrl, "_self");
+  }
+
+  static openPropertiesTouchUI() {
+    alert("WIP");
   }
 }
