@@ -95,13 +95,13 @@ class AEM {
   static createWF(WFTitle, WFName) {
     if (WFTitle == null || WFName == null) return;
 
-    waitForElm(
+    this.waitForElm(
       "#cq-gen75 > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div"
     ).then((firstItemInList) => {
       var button = document.getElementById("cq-gen91");
       button.click();
 
-      waitForElm("ext-comp-1079").then((form) => {
+      this.waitForElm("ext-comp-1079").then((form) => {
         form.value = WFTitle;
 
         form = document.getElementById("ext-comp-1080");
