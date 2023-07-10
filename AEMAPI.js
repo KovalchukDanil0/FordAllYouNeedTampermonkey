@@ -102,8 +102,6 @@ class AEM {
       button.click();
     });
 
-    alert("something");
-
     this.waitForElm("#ext-comp-1079").then((form) => {
       form.value = WFTitle;
 
@@ -113,7 +111,6 @@ class AEM {
       var promotionButton = document.querySelector(
         "#ext-comp-1076 > div:nth-child(3)"
       );
-
       promotionButton.click();
     });
   }
