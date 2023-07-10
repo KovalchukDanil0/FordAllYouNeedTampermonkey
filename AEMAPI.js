@@ -38,12 +38,6 @@ class AEM {
     return url.match(regexWorkflow);
   }
 
-  static rr = class A {
-    G() {
-      alert("");
-    }
-  };
-
   static get regexJira() {
     return regexJira;
   }
@@ -100,18 +94,19 @@ class AEM {
     ).then((firstItemInList) => {
       var button = document.getElementById("cq-gen91");
       button.click();
-    });
 
-    this.waitForElm("#ext-comp-1079").then((form) => {
-      form.value = WFTitle;
+      this.waitForElm("#ext-comp-1079").then((form) => {
+        form.value = WFTitle;
 
-      form = document.getElementById("ext-comp-1080");
-      form.value = WFName;
+        form = document.querySelector("#ext-comp-1080");
+        form.value = WFName;
+      });
 
-      var promotionButton = document.querySelector(
-        "#ext-comp-1076 > div:nth-child(3)"
+      this.waitForElm("#ext-comp-1076 > div:nth-child(3)").then(
+        (promotionButton) => {
+          promotionButton.click();
+        }
       );
-      promotionButton.click();
     });
   }
 
