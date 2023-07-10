@@ -95,21 +95,13 @@ class AEM {
   static createWF(WFTitle, WFName) {
     if (WFTitle == null || WFName == null) return;
 
-    var intervaID = setInterval(function () {
-      var firstItemInList = document.querySelector(
-        "#cq-gen75 > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div"
-      );
-      if (firstItemInList == null) return;
-      clearInterval(intervaID);
-
+    waitForElm(
+      "#cq-gen75 > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div"
+    ).then((firstItemInList) => {
       var button = document.getElementById("cq-gen91");
       button.click();
 
-      intervaID = setInterval(function () {
-        var form = document.getElementById("ext-comp-1079");
-        if (form == null) return;
-        clearInterval(intervaID);
-
+      waitForElm("ext-comp-1079").then((form) => {
         form.value = WFTitle;
 
         form = document.getElementById("ext-comp-1080");
@@ -118,9 +110,10 @@ class AEM {
         var promotionButton = document.querySelector(
           "#ext-comp-1076 > div:nth-child(3)"
         );
+
         promotionButton.click();
-      }, 500);
-    }, 500);
+      });
+    });
   }
 
   static addBetaToLink(link) {
@@ -157,5 +150,25 @@ class AEM {
         "https://wwwperf.brandeuauthorlb.ford.com/mnt/overlay/wcm/core/content/sites/properties.html?item=$2"
       )
     );
+  }
+
+  static waitForElm(selector) {
+    return new Promise((resolve) => {
+      if (document.querySelector(selector)) {
+        return resolve(document.querySelector(selector));
+      }
+
+      const observer = new MutationObserver((mutations) => {
+        if (document.querySelector(selector)) {
+          resolve(document.querySelector(selector));
+          observer.disconnect();
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    });
   }
 }
