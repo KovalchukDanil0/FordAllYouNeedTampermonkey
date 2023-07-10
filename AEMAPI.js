@@ -100,19 +100,21 @@ class AEM {
     ).then((firstItemInList) => {
       var button = document.getElementById("cq-gen91");
       button.click();
+    });
 
-      this.waitForElm("ext-comp-1079").then((form) => {
-        form.value = WFTitle;
+    alert("something");
 
-        form = document.getElementById("ext-comp-1080");
-        form.value = WFName;
+    this.waitForElm("#ext-comp-1079").then((form) => {
+      form.value = WFTitle;
 
-        var promotionButton = document.querySelector(
-          "#ext-comp-1076 > div:nth-child(3)"
-        );
+      form = document.getElementById("ext-comp-1080");
+      form.value = WFName;
 
-        promotionButton.click();
-      });
+      var promotionButton = document.querySelector(
+        "#ext-comp-1076 > div:nth-child(3)"
+      );
+
+      promotionButton.click();
     });
   }
 
