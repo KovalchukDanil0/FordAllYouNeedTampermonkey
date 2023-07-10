@@ -151,6 +151,11 @@ class AEM {
   }
 
   static openPropertiesTouchUI() {
-    window.open(url.replace(regexAuthor, "$2"));
+    window.open(
+      url.replace(
+        regexAuthor,
+        "https://wwwperf.brandeuauthorlb.ford.com/mnt/overlay/wcm/core/content/sites/properties.html?item=$2"
+      )
+    );
   }
 }
