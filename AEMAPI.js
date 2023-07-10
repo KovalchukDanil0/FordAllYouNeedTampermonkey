@@ -13,7 +13,7 @@ const regexLive =
 const regexPerf =
   /(?:.+)?www(perf|prod)(?:-beta)?-(\w\w)(\w\w)?\.brandeulb\.ford\.com(?:.+)?/gm;
 const regexAuthor =
-  /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(?:\/(editor\.html|cf#))?\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?/gm;
+  /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(?:\/(editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?)\.html/gm;
 
 const marketsInBeta = [
   "uk",
@@ -151,6 +151,6 @@ class AEM {
   }
 
   static openPropertiesTouchUI() {
-    alert("WIP");
+    window.open(url.replace(regexAuthor, "$2"));
   }
 }
