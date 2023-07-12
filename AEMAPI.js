@@ -79,11 +79,30 @@ class AEM {
     return regexAuthor;
   }
 
-  static ifAuthor = url.match(regexAuthor);
+  static  ifAuthor = url.match(regexAuthor);
 
-  static isMarketInBeta(market) {
+  static get isMarketInBeta(market) {
     if (marketsInBeta.some((link) => market.includes(link))) return true;
     return false;
+  }
+
+  static get getLinksInWF()
+  {
+    this.waitForIframeToLoad.then((iframe) => {
+      return iframe.contentWindow.document.querySelectorAll(
+        ".content-conf > .configSection > div a"
+      );
+    });
+    
+  }
+
+  static get waitForIframeToLoad()
+  {
+    this.waitForElm(
+      "#cq-cf-frame"
+    ).then((iframe) => {
+      return iframe; 
+    });
   }
 
   static createWF(WFTitle, WFName) {

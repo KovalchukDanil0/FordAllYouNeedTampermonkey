@@ -230,16 +230,10 @@
   }
 
   function WorkflowFixes() {
-    var iframe;
-    var intervaID = setInterval(function () {
-      iframe = document.querySelector("#cq-cf-frame");
-      if (iframe == null) return;
-
+    AEM.waitForElm("#cq-cf-frame").then((iframe) => {
       var form = iframe.contentWindow.document.querySelector(
         "#workflow-title-input"
       );
-      if (form == null) return;
-      clearInterval(intervaID);
 
       var elements = iframe.contentWindow.document.querySelectorAll(
         ".content-conf > .configSection > div a"
@@ -248,23 +242,15 @@
         elements[index].href = AEM.addBetaToLink(elements[index].href);
       }
 
-      var createWF = iframe.contentWindow.document.querySelector(
-        "#start-request-workflow"
-      );
       var WFID = url.replace(AEM.regexWorkflow, "$1");
       form.value = WFID;
-
-      var cancelWF = realButton.insertAdjacentHTML(
-        "afterend",
-        '<button type="button" id="fake-button-cancel-wf">Cancel WF</button>'
-      );
 
       iframe.contentWindow.document
         .querySelector("#fake-button-cancel-wf")
         .addEventListener("click", function () {
           alert("WIP");
         });
-    }, 500);
+    });
   }
 
   function ToEnvironment(env) {
