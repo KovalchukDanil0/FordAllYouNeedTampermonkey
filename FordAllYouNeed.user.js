@@ -230,14 +230,12 @@
   }
 
   function WorkflowFixes() {
-    AEM.waitForElm("#cq-cf-frame").then((iframe) => {
+    AEM.waitForElm("").then((iframe) => {
       var form = iframe.contentWindow.document.querySelector(
         "#workflow-title-input"
       );
 
-      var elements = iframe.contentWindow.document.querySelectorAll(
-        ".content-conf > .configSection > div a"
-      );
+      var elements = AEM.getLinksInWF;
       for (let index = 0; index < elements.length; index++) {
         elements[index].href = AEM.addBetaToLink(elements[index].href);
       }
