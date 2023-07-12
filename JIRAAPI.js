@@ -1,5 +1,7 @@
 class JIRA {
-  getClient() {}
+  getClient() {
+    
+  }
 
   getWFTitle() {}
 }
