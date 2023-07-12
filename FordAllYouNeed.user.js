@@ -1,11 +1,23 @@
 // ==UserScript==
 // @name         Ford All You Need
-// @namespace    http://tampermonkey.net/
+//
+// @description  try to take over the ford!
+//
+// @author       Gomofob
+//
 // @version      0.6
+//
+// @namespace    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey
+//
 // @downloadURL  https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
 // @updateURL    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
-// @description  try to take over the ford!
-// @author       Gomofob
+//
+// @require      https://raw.githubusercontent.com/KovalchukDanil0/FordAllYouNeedTampermonkey/main/AEMAPI.js
+// @require      https://raw.githubusercontent.com/KovalchukDanil0/FordAllYouNeedTampermonkey/main/JIRAAPI.js
+// @require      https://code.jquery.com/jquery-3.7.0.min.js
+//
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=ford.com
+//
 // @match        https://jira.uhub.biz/browse/*
 //
 // @match        https://www.ford.ie/*
@@ -36,65 +48,10 @@
 // @match        https://www.ford.pl/*
 // @match        https://www.ford.dk/*
 //
-// @match        https://wwwperf-ie.brandeulb.ford.com/*
-// @match        https://wwwperf-fi.brandeulb.ford.com/*
-// @match        https://wwwperf-cz.brandeulb.ford.com/*
-// @match        https://wwwperf-hu.brandeulb.ford.com/*
-// @match        https://wwwperf-gr.brandeulb.ford.com/*
-// @match        https://wwwperf-ro.brandeulb.ford.com/*
-// @match        https://wwwperf-lu.brandeulb.ford.com/*
-// @match        https://wwwperf-ru.brandeulb.ford.com/*
-//
-// @match        https://wwwperf-befr.brandeulb.ford.com/*
-// @match        https://wwwperf-benl.brandeulb.ford.com/*
-//
-// @match        https://wwwperf-chde.brandeulb.ford.com/*
-// @match        https://wwwperf-chfr.brandeulb.ford.com/*
-// @match        https://wwwperf-chit.brandeulb.ford.com/*
-//
-// @match        https://wwwperf-beta-couk.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-de.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-es.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-fr.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-nl.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-it.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-no.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-at.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-pt.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-pl.brandeulb.ford.com/*
-// @match        https://wwwperf-beta-dk.brandeulb.ford.com/*
-//
-// @match        https://wwwprod-ie.brandeulb.ford.com/*
-// @match        https://wwwprod-fi.brandeulb.ford.com/*
-// @match        https://wwwprod-cz.brandeulb.ford.com/*
-// @match        https://wwwprod-hu.brandeulb.ford.com/*
-// @match        https://wwwprod-gr.brandeulb.ford.com/*
-// @match        https://wwwprod-ro.brandeulb.ford.com/*
-// @match        https://wwwprod-lu.brandeulb.ford.com/*
-// @match        https://wwwprod-ru.brandeulb.ford.com/*
-//
-// @match        https://wwwprod-befr.brandeulb.ford.com/*
-// @match        https://wwwprod-benl.brandeulb.ford.com/*
-//
-// @match        https://wwwprod-chde.brandeulb.ford.com/*
-// @match        https://wwwprod-chfr.brandeulb.ford.com/*
-// @match        https://wwwprod-chit.brandeulb.ford.com/*
-//
-// @match        https://wwwprod-beta-couk.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-de.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-es.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-fr.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-nl.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-it.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-no.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-at.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-pt.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-pl.brandeulb.ford.com/*
-// @match        https://wwwprod-beta-dk.brandeulb.ford.com/*
+// @match        https://*.brandeulb.ford.com/*
 //
 // @match        https://wwwperf.brandeuauthorlb.ford.com/*
 //
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=ford.com
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_registerMenuCommand
@@ -105,91 +62,40 @@
 
   const url = window.location.href;
 
-  const regexWorkflow =
-    /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:cf#|editor\.html))?\/etc\/workflow\/packages\/ESM\/\w\w(?:\w\w)?\/(.+)\.html(?:.+)?/gm;
-  const regexJira = /jira\.uhub\.biz\/browse\//gm;
-  const regexWCMWorkflows =
-    /wwwperf\.brandeuauthorlb\.ford\.com\/miscadmin#\/etc\/workflow\/packages\/ESM\//gm;
-  const regexResourceResolver =
-    /wwwperf\.brandeuauthorlb\.ford\.com(\/(?:cf#|editor\.html))?\/etc\/guxacc\/tools\/resource\-resolver\-tool/gm;
-
-  const regexLive =
-    /(?:.+)?(?:secure|www)(?:\.(\w\w))?\.ford\.(\w\w)(?:\.(\w\w))?(?:.+)?/gm;
-  const regexPerf =
-    /(?:.+)?www(perf|prod)(?:-beta)?-(\w\w)(\w\w)?\.brandeulb\.ford\.com(?:.+)?/gm;
-  const regexAuthor =
-    /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(editor\.html|cf#))?\/content\/guxeu(?:-beta)?\/(\w\w)\/(\w\w)_\w\w\/(?:.+)?/gm;
-
-  const marketsInBeta = [
-    "uk",
-    "de",
-    "es",
-    "fr",
-    "nl",
-    "it",
-    "no",
-    "at",
-    "pt",
-    "pl",
-    "dk",
-  ];
-  function IsMarketInBeta(market) {
-    if (marketsInBeta.some((link) => market.includes(link))) return true;
-
-    return false;
-  }
-
   var market = "";
   var localLanguage = "";
 
   (function AddMenus() {
-    var ifNotLive = !url.match(regexLive);
-    var ifNotPerf = !(url.replace(regexPerf, "$1") == "perf");
-    var ifNotProd = !(url.replace(regexPerf, "$1") == "prod");
-    var ifNotAuthor = !url.match(regexAuthor);
+    if (AEM.ifLive || AEM.ifPerf || AEM.ifProd || AEM.ifAuthor) {
+      if (!AEM.ifLive) {
+        GM.registerMenuCommand("TO LIVE", () => ToEnvironment("live"));
+      }
+      if (!AEM.ifPerf) {
+        GM.registerMenuCommand("TO PERF", () => ToEnvironment("perf"));
+      }
+      if (!AEM.ifProd) {
+        GM.registerMenuCommand("TO PROD", () => ToEnvironment("prod"));
+      }
+      if (!AEM.ifAuthor) {
+        GM.registerMenuCommand("TO AUTHOR", () => ToEnvironment("author"));
+      } else {
+        GM.registerMenuCommand("TO ANOTHER UI", () => AEM.changeUI());
+      }
 
-    if (ifNotLive && ifNotPerf && ifNotProd && ifNotAuthor) return;
-
-    if (ifNotLive) {
-      GM.registerMenuCommand("TO LIVE", () => ToEnvironment("live"));
-    }
-    if (ifNotPerf) {
-      GM.registerMenuCommand("TO PERF", () => ToEnvironment("perf"));
-    }
-    if (ifNotProd) {
-      GM.registerMenuCommand("TO PROD", () => ToEnvironment("prod"));
-    }
-    if (ifNotAuthor) {
-      GM.registerMenuCommand("TO AUTHOR", () => ToEnvironment("author"));
-    } else {
-      GM.registerMenuCommand("TO ANOTHER UI", () => ChangeUI());
+      GM.registerMenuCommand("OPEN PROPERTIES TOUCH UI", () =>
+        AEM.openPropertiesTouchUI()
+      );
     }
   })();
 
-  if (url.match(regexWCMWorkflows)) {
-    CreateWF();
-  } else if (url.match(regexWorkflow)) {
+  if (AEM.ifWCMWorkflows) {
+    AEM.createWF(GMSetADeleteValue("WFTitle"), GMSetADeleteValue("WFName"));
+  } else if (AEM.ifWorkflow) {
     WorkflowFixes();
-  } else if (url.match(regexJira)) {
+  } else if (AEM.ifJira) {
     WFButton();
-  } else if (url.match(regexResourceResolver)) {
+  } else if (AEM.ifResourceResolver) {
     ResourceResolverGetOrigPath();
-  }
-
-  function ChangeUI() {
-    const regexChangeUI =
-      /(.+)?(wwwperf\.brandeuauthorlb\.ford\.com)(?:\/)?(editor\.html|cf#)?(\/content)(.+)?/gm;
-
-    var authorUI = url.replace(regexChangeUI, "$3");
-    var newUrl;
-
-    if (authorUI == "editor.html") {
-      newUrl = url.replace(regexChangeUI, "$1$2/cf#$4$5");
-    } else {
-      newUrl = url.replace(regexChangeUI, "$1$2/editor.html$4$5");
-    }
-
-    window.open(newUrl, "_self");
   }
 
   function WFButton() {
@@ -240,48 +146,12 @@
     );
   }
 
-  function CreateWF() {
-    var WFTitle = GM_getValue("WFTitle", null);
-    GM_setValue("WFTitle", null);
-
-    var WFName = GM_getValue("WFName", null);
-    GM_setValue("WFName", null);
-
-    if (WFTitle == null || WFName == null) return;
-
-    var intervaID = setInterval(function () {
-      var firstItemInList = document.querySelector(
-        "#cq-gen75 > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div"
-      );
-      if (firstItemInList == null) return;
-      clearInterval(intervaID);
-
-      var button = document.getElementById("cq-gen91");
-      button.click();
-
-      intervaID = setInterval(function () {
-        var form = document.getElementById("ext-comp-1079");
-        if (form == null) return;
-        clearInterval(intervaID);
-
-        form.value = WFTitle;
-
-        form = document.getElementById("ext-comp-1080");
-        form.value = WFName;
-
-        var promotionButton = document.querySelector(
-          "#ext-comp-1076 > div:nth-child(3)"
-        );
-        promotionButton.click();
-      }, 500);
-    }, 500);
-  }
-
   function TextToWFPath(market, localLanguage) {
     var fullPath;
     switch (market) {
       default:
-        return;
+        fullPath = WFPAthFromTitle(GM_getValue("WFTitle", null));
+        break;
       case "Ford of Belgium":
         fullPath = "BE";
         switch (localLanguage) {
@@ -291,6 +161,9 @@
           case "French":
             fullPath += "/" + fullPath + "FR";
             break;
+          default:
+            fullPath = WFPAthFromTitle(GM_getValue("WFTitle", null));
+            break;
         }
         break;
       case "Ford of Switzerland":
@@ -298,6 +171,9 @@
         switch (localLanguage) {
           case "German":
             fullPath += "/" + fullPath + "DE";
+            break;
+          default:
+            fullPath = WFPAthFromTitle(GM_getValue("WFTitle", null));
             break;
         }
         break;
@@ -334,14 +210,29 @@
       case "Ford of Luxembourg":
         fullPath = "LULU";
         break;
+      case "Ford of Denmark":
+        fullPath = "DA_DK";
+        break;
+      case "Ford of France":
+        fullPath = "FRFR";
+        break;
     }
 
     return fullPath;
   }
 
+  function WFPAthFromTitle(title) {
+    const regexWFTitle = /^(\w\w)(\w\w)?(?:.+)?/gm;
+
+    market = title.replace(regexWFTitle, "$1");
+    localLanguage = title.replace(regexWFTitle, "$2");
+    return market + "/" + market + localLanguage;
+  }
+
   function WorkflowFixes() {
+    var iframe;
     var intervaID = setInterval(function () {
-      var iframe = document.querySelector("#cq-cf-frame");
+      iframe = document.querySelector("#cq-cf-frame");
       if (iframe == null) return;
 
       var form = iframe.contentWindow.document.querySelector(
@@ -354,12 +245,14 @@
         ".content-conf > .configSection > div a"
       );
       for (let index = 0; index < elements.length; index++) {
-        elements[index].href = AddBetaToLink(elements[index].href);
+        elements[index].href = AEM.addBetaToLink(elements[index].href);
       }
 
-      var realButton = iframe.contentWindow.document.querySelector(
+      var createWF = iframe.contentWindow.document.querySelector(
         "#start-request-workflow"
       );
+      var WFID = url.replace(AEM.regexWorkflow, "$1");
+      form.value = WFID;
 
       var cancelWF = realButton.insertAdjacentHTML(
         "afterend",
@@ -371,33 +264,7 @@
         .addEventListener("click", function () {
           alert("WIP");
         });
-
-      var createWF = realButton.insertAdjacentHTML(
-        "afterend",
-        '<button type="button" id="fake-button-create-wf">Auto Start WF</button>&nbsp;'
-      );
-
-      realButton.style.display = "none";
-
-      iframe.contentWindow.document
-        .querySelector("#fake-button-create-wf")
-        .addEventListener("click", function () {
-          var WFID = url.replace(regexWorkflow, "$1");
-          form.value = WFID;
-          realButton.click();
-        });
     }, 500);
-  }
-
-  function AddBetaToLink(link) {
-    const regexDetermineBeta =
-      /(.+)?(\/(?:editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(?:.+)?)/gm;
-    if (link.includes("/guxeu-beta/")) {
-      link = link.replace(regexDetermineBeta, "$1/editor.html$3");
-    } else {
-      link = link.replace(regexDetermineBeta, "$1/cf#$3");
-    }
-    return link;
   }
 
   function ToEnvironment(env) {
@@ -413,30 +280,29 @@
     var beta = "";
 
     // Live
-    if (url.match(regexLive)) {
+    if (url.match(AEM.regexLive)) {
       if (url.match(/www\.ford\.\w\w\.\w\w/gm)) {
-        market = url.replace(regexLive, "$3");
-        localLanguage = url.replace(regexLive, "$2");
+        market = url.replace(AEM.regexLive, "$3");
+        localLanguage = url.replace(AEM.regexLive, "$2");
       } else {
-        market = url.replace(regexLive, "$2");
-        localLanguage = url.replace(regexLive, "$1");
+        market = url.replace(AEM.regexLive, "$2");
+        localLanguage = url.replace(AEM.regexLive, "$1");
       }
 
-      if (IsMarketInBeta(market)) {
+      if (AEM.isMarketInBeta(market)) {
         beta = "-beta";
       }
 
       DetermineEnv(env, market, localLanguage, beta, urlPart);
     }
     // Perf & Prod
-    // live isn't grabbing market correctly in UK
-    else if (url.match(regexPerf)) {
-      if (url.match(/www(perf|prod)-couk\.brandeulb\.ford\.com/gm)) {
-        market = url.replace(regexPerf, "$3");
-        localLanguage = url.replace(regexPerf, "$4");
+    else if (url.match(AEM.regexPerf)) {
+      if (url.match(/www(perf|prod)-beta-couk\.brandeulb\.ford\.com/gm)) {
+        market = url.replace(AEM.regexPerf, "$3");
+        localLanguage = url.replace(AEM.regexPerf, "$2");
       } else {
-        market = url.replace(regexPerf, "$2");
-        localLanguage = url.replace(regexPerf, "$3");
+        market = url.replace(AEM.regexPerf, "$2");
+        localLanguage = url.replace(AEM.regexPerf, "$3");
       }
 
       if (url.includes("-beta")) beta = "-beta";
@@ -444,16 +310,16 @@
       DetermineEnv(env, market, localLanguage, beta, urlPart);
     }
     // Author
-    else if (url.match(regexAuthor)) {
-      market = FixMarket(url.replace(regexAuthor, "$2"));
+    else if (url.match(AEM.regexAuthor)) {
+      market = FixMarket(url.replace(AEM.regexAuthor, "$3"));
 
       localLanguage = FixLocalLanguage(
-        url.replace(regexAuthor, "$3"),
+        url.replace(AEM.regexAuthor, "$4"),
         market,
         false
       );
 
-      if (IsMarketInBeta(market)) {
+      if (AEM.isMarketInBeta(market)) {
         beta = "-beta";
 
         var intervaID = setInterval(function () {
@@ -519,17 +385,20 @@
   }
 
   function MakePerf(env, market, localLanguage, beta, urlPart) {
-    if (market == "uk") {
+    if (market == "uk" || market == "gb") {
       [localLanguage, market] = [market, localLanguage];
     }
+
+    alert(market);
+    alert(localLanguage);
 
     window.open(
       "https://www" +
         env +
         beta +
         "-" +
-        market +
-        localLanguage +
+        FixMarket(market) +
+        FixLocalLanguage(localLanguage) +
         ".brandeulb.ford.com" +
         urlPart,
       "_self"
@@ -570,7 +439,7 @@
     );
   }
 
-  const marketsFixAuthor = ["co"];
+  const marketsFixAuthor = ["gb"];
   const marketsFixPerf = ["uk"];
   function FixMarket(market) {
     var idx = marketsFixAuthor.indexOf(market);
@@ -586,51 +455,48 @@
     return market;
   }
 
-  const localLanguageFixAuthor = ["cz", "gr"];
-  const localLanguageFixPerf = ["cs", "el"];
   function FixLocalLanguage(localLanguage, market, toAuthor) {
-    var idx;
     if (toAuthor) {
       if (localLanguage == "") localLanguage = market;
 
-      idx = localLanguageFixAuthor.indexOf(localLanguage);
-      if (idx >= 0) {
-        localLanguage = localLanguageFixPerf[idx];
-      } else {
-        switch (market) {
-          case "lu":
-            localLanguage = "fr";
-            break;
-          case "uk":
-            localLanguage = "en";
-            break;
-          case "ie":
-            localLanguage = "en";
-            break;
-          case "at":
-            localLanguage = "de";
-            break;
-        }
+      switch (market) {
+        case "uk":
+        case "ie":
+          localLanguage = "en";
+          break;
+        case "lu":
+          localLanguage = "fr";
+          break;
+        case "at":
+          localLanguage = "de";
+          break;
+        case "dk":
+          localLanguage = "da";
+          break;
+        case "cs":
+          localLanguage = "cz";
+          break;
+        case "el":
+          localLanguage = "gr";
+          break;
       }
     } else {
-      idx = localLanguageFixPerf.indexOf(localLanguage);
-      if (idx >= 0) {
-        localLanguage = localLanguageFixAuthor[idx];
-      } else {
-        switch (market) {
-          case "lu":
-            localLanguage = "";
-            break;
-          case "co": //uk
-            localLanguage = "uk";
-            break;
-          case "ie":
-            localLanguage = "";
-            break;
-          case "at":
-            localLanguage = "";
-            break;
-        }
+      switch (market) {
+        case "lu":
+        case "ie":
+        case "at":
+        case "dk":
+          localLanguage = "";
+          break;
+        case "en":
+          localLanguage = "uk";
+          break;
+        case "cz":
+          localLanguage = "cs";
+          break;
+        case "gr":
+          localLanguage = "el";
+          break;
       }
 
       if (localLanguage == market) localLanguage = "";
@@ -640,9 +506,8 @@
   }
 
   function ResourceResolverGetOrigPath() {
-    var wrongLink = GM_getValue("WrongLink", null);
+    var wrongLink = GMSetADeleteValue("WrongLink");
     if (wrongLink == null) return;
-    GM_setValue("WrongLink", null);
 
     var intervaID = setInterval(function () {
       var iframe = document.querySelector("#cq-cf-frame");
@@ -667,5 +532,11 @@
         MakeRealAuthorLink(originalPath);
       }, 500);
     }, 500);
+  }
+
+  function GMSetADeleteValue(value) {
+    let val = GM_getValue(value, null);
+    if (val != null) GM_setValue(value, null);
+    return val;
   }
 })();
