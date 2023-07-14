@@ -389,7 +389,7 @@
       "/home" +
       urlPart;
 
-    GM_setValue("LinkPart", window.location.search + window.location.hash);
+    //GM_setValue("LinkPart", window.location.search + window.location.hash);
 
     if (beta == "-beta" && urlPart != "") {
       GM_setValue("WrongLink", wrongLink);
@@ -403,14 +403,14 @@
   }
 
   function MakeRealAuthorLink(link) {
-    var linkPart = GM_getValue("LinkPart", null);
+    //var linkPart = GM_getValue("LinkPart", null);
 
     window.open(
       "https://wwwperf.brandeuauthorlb.ford.com/" +
         "editor.html" +
         link +
-        ".html" +
-        linkPart,
+        ".html" /* +
+        linkPart*/,
       "_parent"
     );
   }
