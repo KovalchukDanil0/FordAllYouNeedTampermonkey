@@ -50,7 +50,7 @@
 //
 // @match        https://*.brandeulb.ford.com/*
 //
-// @match        https://wwwperf.brandeuauthorlb.ford.com/*
+// @match        https://*.brandeuauthorlb.ford.com/*
 //
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -59,8 +59,6 @@
 
 (function () {
   "use strict";
-
-  const url = window.location.href;
 
   var market = "";
   var localLanguage = "";
@@ -96,7 +94,11 @@
     WFButton();
   } else if (AEM.ifResourceResolver) {
     ResourceResolverGetOrigPath();
-  }
+  } /* else if (AEM.ifAuthor) {
+    if (document.querySelector("body > h1").textContent == "Forbidden") {
+      alert("broken");
+    }
+  }*/
 
   function WFButton() {
     var buttonsContainer = document.querySelector(
@@ -216,6 +218,9 @@
       case "Ford of France":
         fullPath = "FRFR";
         break;
+      case "Ford of Romania":
+        fullPath = "RORO";
+        break;
     }
 
     return fullPath;
@@ -230,24 +235,13 @@
   }
 
   function WorkflowFixes() {
-    AEM.waitForElm("").then((iframe) => {
-      var form = iframe.contentWindow.document.querySelector(
-        "#workflow-title-input"
-      );
+    AEM.waitForElm("#workflow-title-input").then((form) => {
+      form.value = AEM.WFID;
 
-      var elements = AEM.getLinksInWF;
+      var elements = AEM.getLinksInWF();
       for (let index = 0; index < elements.length; index++) {
         elements[index].href = AEM.addBetaToLink(elements[index].href);
       }
-
-      var WFID = url.replace(AEM.regexWorkflow, "$1");
-      form.value = WFID;
-
-      iframe.contentWindow.document
-        .querySelector("#fake-button-cancel-wf")
-        .addEventListener("click", function () {
-          alert("WIP");
-        });
     });
   }
 
@@ -295,10 +289,10 @@
     }
     // Author
     else if (url.match(AEM.regexAuthor)) {
-      market = FixMarket(url.replace(AEM.regexAuthor, "$3"));
+      market = FixMarket(url.replace(AEM.regexAuthor, "$2"));
 
       localLanguage = FixLocalLanguage(
-        url.replace(AEM.regexAuthor, "$4"),
+        url.replace(AEM.regexAuthor, "$3"),
         market,
         false
       );
@@ -306,14 +300,10 @@
       if (AEM.isMarketInBeta(market)) {
         beta = "-beta";
 
-        var intervaID = setInterval(function () {
-          var iframe = document.getElementById("ContentFrame");
-
-          var realUrl = iframe.contentWindow.document.querySelector(
-            "#accelerator-page > div.info-banner > div:nth-child(1)"
-          );
+        AEM.waitForElm(
+          "#accelerator-page > div.info-banner > div:nth-child(1)"
+        ).then((realUrl) => {
           if (realUrl == null) return;
-          clearInterval(intervaID);
 
           var urlPart = realUrl.textContent.replace(
             /(?:[\s\S]*)?Your real URL will be : \.\.\. \/home(\S+)?(?:[\s\S]*)?/gm,
@@ -321,7 +311,7 @@
           );
 
           DetermineEnv(env, market, localLanguage, beta, urlPart);
-        }, 500);
+        });
       } else {
         urlPart = urlPart.replace(
           /(?:.+)?\/content.+\/home(.+)?\.html(?:.+)?/gm,
@@ -364,7 +354,7 @@
 
     window.open(
       "https://www." + localLanguage + "ford." + market + britain + urlPart,
-      "_self"
+      "_parent"
     );
   }
 
@@ -372,9 +362,6 @@
     if (market == "uk" || market == "gb") {
       [localLanguage, market] = [market, localLanguage];
     }
-
-    alert(market);
-    alert(localLanguage);
 
     window.open(
       "https://www" +
@@ -385,7 +372,7 @@
         FixLocalLanguage(localLanguage) +
         ".brandeulb.ford.com" +
         urlPart,
-      "_self"
+      "_parent"
     );
   }
 
@@ -402,11 +389,13 @@
       "/home" +
       urlPart;
 
+    GM_setValue("LinkPart", window.location.search + window.location.hash);
+
     if (beta == "-beta" && urlPart != "") {
       GM_setValue("WrongLink", wrongLink);
       window.open(
         "https://wwwperf.brandeuauthorlb.ford.com/cf#/etc/guxacc/tools/resource-resolver-tool.html",
-        "_self"
+        "_parent"
       );
     } else {
       MakeRealAuthorLink(wrongLink);
@@ -414,12 +403,15 @@
   }
 
   function MakeRealAuthorLink(link) {
+    var linkPart = GM_getValue("LinkPart", null);
+
     window.open(
       "https://wwwperf.brandeuauthorlb.ford.com/" +
         "editor.html" +
         link +
-        ".html",
-      "_self"
+        ".html" +
+        linkPart,
+      "_parent"
     );
   }
 
@@ -493,29 +485,20 @@
     var wrongLink = GMSetADeleteValue("WrongLink");
     if (wrongLink == null) return;
 
-    var intervaID = setInterval(function () {
-      var iframe = document.querySelector("#cq-cf-frame");
-      if (iframe == null) return;
-
-      var form = iframe.contentWindow.document.querySelector("#aliasPath");
-      if (form == null) return;
-      clearInterval(intervaID);
-
+    AEM.waitForElm("#aliasPath").then((form) => {
       form.value = wrongLink;
 
-      var button = iframe.contentWindow.document.querySelector("#resolvertool");
+      var button = document.querySelector("#resolvertool");
       button.click();
+
       var intervaID = setInterval(function () {
-        var originalPath =
-          iframe.contentWindow.document.querySelector(
-            "#originalPath"
-          ).textContent;
+        var originalPath = document.querySelector("#originalPath").textContent;
         if (originalPath.trim().length == 0) return;
         clearInterval(intervaID);
 
         MakeRealAuthorLink(originalPath);
       }, 500);
-    }, 500);
+    });
   }
 
   function GMSetADeleteValue(value) {
