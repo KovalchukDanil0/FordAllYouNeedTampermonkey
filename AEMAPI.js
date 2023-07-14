@@ -1,20 +1,23 @@
 const url = window.location.href;
+const parentUrl =
+  window.location != window.parent.location
+    ? document.referrer
+    : document.location.href;
 
 const regexWorkflow =
-  /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:cf#|editor\.html))?\/etc\/workflow\/packages\/ESM\/\w\w\w\w(?:\/\w\w)?\/(.+)\.html(?:.+)?/gm;
+  /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com\/etc\/workflow\/packages\/ESM\/\w\w\w\w(?:\/\w\w)?\/(.+)\.html(?:.+)?/gm;
 const regexJira = /jira\.uhub\.biz\/browse\//gm;
 const regexWCMWorkflows =
   /wwwperf\.brandeuauthorlb\.ford\.com\/miscadmin#\/etc\/workflow\/packages\/ESM\//gm;
 const regexResourceResolver =
-  /wwwperf\.brandeuauthorlb\.ford\.com(\/(?:cf#|editor\.html))?\/etc\/guxacc\/tools\/resource\-resolver\-tool/gm;
+  /wwwperf\.brandeuauthorlb\.ford\.com\/etc\/guxacc\/tools\/resource\-resolver\-tool/gm;
 
 const regexLive =
   /(?:.+)?(?:secure|www)(?:\.(\w\w))?\.ford\.(\w\w)(?:\.(\w\w))?(?:.+)?/gm;
 const regexPerf =
   /(?:.+)?www(perf|prod)(?:-beta)?-(\w\w)(\w\w)?\.brandeulb\.ford\.com(?:.+)?/gm;
 const regexAuthor =
-  /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(?:\/(editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?)\.html/gm;
-
+  /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?)\.html/gm;
 const marketsInBeta = [
   "uk",
   "de",
@@ -79,30 +82,19 @@ class AEM {
     return regexAuthor;
   }
 
-  static  ifAuthor = url.match(regexAuthor);
+  static ifAuthor = url.match(regexAuthor);
 
-  static get isMarketInBeta(market) {
+  static isMarketInBeta(market) {
     if (marketsInBeta.some((link) => market.includes(link))) return true;
     return false;
   }
 
-  static get getLinksInWF()
-  {
-    this.waitForIframeToLoad.then((iframe) => {
-      return iframe.contentWindow.document.querySelectorAll(
-        ".content-conf > .configSection > div a"
-      );
-    });
-    
+  static getLinksInWF() {
+    return document.querySelectorAll(".content-conf > .configSection > div a");
   }
 
-  static get waitForIframeToLoad()
-  {
-    this.waitForElm(
-      "#cq-cf-frame"
-    ).then((iframe) => {
-      return iframe; 
-    });
+  static get WFID() {
+    return url.replace(regexWorkflow, "$1");
   }
 
   static createWF(WFTitle, WFName) {
@@ -130,30 +122,29 @@ class AEM {
   }
 
   static addBetaToLink(link) {
-    const regexDetermineBeta =
-      /(.+)?(\/(?:editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(?:.+)?)/gm;
+    const regexDetermineBeta = /(.+)?(\/content\/guxeu(?:-beta)?\/(?:.+)?)/gm;
     if (link.includes("/guxeu-beta/")) {
-      link = link.replace(regexDetermineBeta, "$1/editor.html$3");
+      link = link.replace(regexDetermineBeta, "$1/editor.html$2");
     } else {
-      link = link.replace(regexDetermineBeta, "$1/cf#$3");
+      link = link.replace(regexDetermineBeta, "$1/cf#$2");
     }
     return link;
   }
 
   static changeUI() {
     const regexChangeUI =
-      /(.+)?(wwwperf\.brandeu(?:author)?lb\.ford\.com)(?:\/)?(editor\.html|cf#)?(\/content)(.+)?/gm;
+      /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com((?:\/)?(?:editor\.html|cf#)?\/)content(?:.+)?/gm;
 
-    var authorUI = url.replace(regexChangeUI, "$3");
+    var authorUI = parentUrl.replace(regexChangeUI, "$2");
     var newUrl;
 
     if (authorUI == "editor.html") {
-      newUrl = url.replace(regexChangeUI, "$1$2/cf#$4$5");
+      newUrl = parentUrl.replace(regexChangeUI, "$1cf#$3");
     } else {
-      newUrl = url.replace(regexChangeUI, "$1$2/editor.html$4$5");
+      newUrl = parentUrl.replace(regexChangeUI, "$1editor.html$3");
     }
 
-    window.open(newUrl, "_self");
+    window.open(newUrl, "_parent");
   }
 
   static openPropertiesTouchUI() {
