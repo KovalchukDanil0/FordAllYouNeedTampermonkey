@@ -6,9 +6,16 @@ const url =
 var market;
 var localLanguage;
 
+var urlPart =
+  window.location.pathname + window.location.search + window.location.hash;
+if (urlPart == "/") {
+  urlPart = "";
+}
+
+var beta;
+
 const regexWorkflow =
   /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/workflow\/packages\/ESM\/\w\w\w\w(?:\/\w\w)?\/(.+)\.html(?:.+)?/gm;
-const regexJira = /jira\.uhub\.biz\/browse\//gm;
 const regexWCMWorkflows =
   /wwwperf\.brandeuauthorlb\.ford\.com\/miscadmin#\/etc\/workflow\/packages\/ESM\//gm;
 const regexResourceResolver =
@@ -16,7 +23,7 @@ const regexResourceResolver =
 
 const regexLive =
   /(?:.+)?(?:secure|www)(?:\.(\w\w))?\.ford\.(\w\w)(?:\.(\w\w))?(?:.+)?/gm;
-const regexPerf =
+const regexPerfProd =
   /(?:.+)?www(perf|prod)(?:-beta)?-(\w\w)(\w\w)?\.brandeulb\.ford\.com(?:.+)?/gm;
 const regexAuthor =
   /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(?:\/(?:editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?)\.html(?:.+)?/gm;
@@ -44,12 +51,21 @@ String.prototype.addBetaToLink = function () {
 };
 
 class AEM {
+  /*static number(value) {
+    this.value = value;
+    this.plus = function (sum) {
+      this.value += sum;
+      return this;
+    };
+
+    this.return = function () {
+      return this.value;
+    };
+    return this;
+  }*/
+
   static get ifWorkflow() {
     return url.match(regexWorkflow);
-  }
-
-  static get ifJira() {
-    return url.match(regexJira);
   }
 
   static get ifWCMWorkflows() {
@@ -60,12 +76,25 @@ class AEM {
     return url.match(regexResourceResolver);
   }
 
-  static ifLive = url.match(regexLive);
+  static get ifLive() {
+    return url.match(regexLive);
+  }
 
-  static ifPerf = url.replace(regexPerf, "$1") == "perf";
-  static ifProd = url.replace(regexPerf, "$1") == "prod";
+  static get ifPerf() {
+    return url.replace(regexPerfProd, "$1") == "perf";
+  }
 
-  static ifAuthor = url.match(regexAuthor);
+  static get ifProd() {
+    return url.replace(regexPerfProd, "$1") == "prod";
+  }
+
+  static get ifPerfProd() {
+    return url.match(regexPerfProd);
+  }
+
+  static get ifAuthor() {
+    return url.match(regexAuthor);
+  }
 
   static isMarketInBeta(market) {
     if (marketsInBeta.some((link) => market.includes(link))) return true;
@@ -76,7 +105,7 @@ class AEM {
     var fullPath;
     switch (market) {
       default:
-        fullPath = this.wfPathFromTitle(GM_getValue("WFTitle", null));
+        fullPath = this.wfPathFromTitle(GM_getValue("WFTitle", ""));
         break;
       case "Ford of Belgium":
         fullPath = "BE";
@@ -88,7 +117,7 @@ class AEM {
             fullPath += "/" + fullPath + "FR";
             break;
           default:
-            fullPath = this.wfPathFromTitle(GM_getValue("WFTitle", null));
+            fullPath = this.wfPathFromTitle(GM_getValue("WFTitle", ""));
             break;
         }
         break;
@@ -99,7 +128,7 @@ class AEM {
             fullPath += "/" + fullPath + "DE";
             break;
           default:
-            fullPath = this.wfPathFromTitle(GM_getValue("WFTitle", null));
+            fullPath = this.wfPathFromTitle(GM_getValue("WFTitle", ""));
             break;
         }
         break;
@@ -167,7 +196,10 @@ class AEM {
   }
 
   static createWF(WFTitle, WFName) {
-    if (WFTitle == null || WFName == null) return;
+    if (WFTitle == "" || WFName == "")
+      throw new Error(
+        "WFTitle or WFName are not defined, workflows opened manually"
+      );
 
     this.waitForElm(
       "#cq-gen75 > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div"
@@ -213,7 +245,7 @@ class AEM {
     );
   }
 
-  static FixMarket(market) {
+  static fixMarket(market) {
     const marketsFixAuthor = ["gb"];
     const marketsFixPerf = ["uk"];
 
@@ -230,7 +262,7 @@ class AEM {
     return market;
   }
 
-  static FixLocalLanguage(localLanguage, market, toAuthor) {
+  static fixLocalLanguage(localLanguage, market, toAuthor) {
     if (toAuthor) {
       if (localLanguage == "") localLanguage = market;
 
@@ -248,8 +280,8 @@ class AEM {
         case "dk":
           localLanguage = "da";
           break;
-        case "cs":
-          localLanguage = "cz";
+        case "cz":
+          localLanguage = "cs";
           break;
         case "el":
           localLanguage = "gr";
@@ -267,7 +299,7 @@ class AEM {
           localLanguage = "uk";
           break;
         case "cz":
-          localLanguage = "cs";
+          localLanguage = "";
           break;
         case "gr":
           localLanguage = "el";
@@ -278,6 +310,20 @@ class AEM {
     }
 
     return localLanguage;
+  }
+
+  static waitForWorkflowTitleInput() {
+    return this.waitForElm("#workflow-title-input");
+  }
+
+  static waitForAliasPath() {
+    return this.waitForElm("#aliasPath");
+  }
+
+  static waitRealAuthorPath() {
+    return this.waitForElm(
+      "#accelerator-page > div.info-banner > div:nth-child(1)"
+    );
   }
 
   static waitForElm(selector) {
@@ -298,5 +344,102 @@ class AEM {
         subtree: true,
       });
     });
+  }
+
+  static determineEnv(env, market, localLanguage, beta, urlPart) {
+    if (market == "") throw new Error("Market is not set!");
+
+    switch (env) {
+      case "live":
+        this.makeLive(market, localLanguage, urlPart);
+        break;
+      case "perf":
+      case "prod":
+        this.makePerf(env, market, localLanguage, beta, urlPart);
+        break;
+      case "author":
+        this.makeAuthor(market, localLanguage, beta, urlPart);
+        break;
+    }
+  }
+
+  static makeLive(market, localLanguage, urlPart) {
+    var britain = "";
+    if (market == "co") {
+      britain = localLanguage;
+      market += ".";
+      localLanguage = "";
+    }
+
+    if (localLanguage != "") localLanguage += ".";
+
+    window.open(
+      "https://www." + localLanguage + "ford." + market + britain + urlPart,
+      "_parent"
+    );
+  }
+
+  static makePerf(env, market, localLanguage, beta, urlPart) {
+    if (market == "uk" || market == "gb") {
+      [localLanguage, market] = [market, localLanguage];
+    }
+
+    window.open(
+      "https://www" +
+        env +
+        beta +
+        "-" +
+        this.fixMarket(market) +
+        this.fixLocalLanguage(localLanguage) +
+        ".brandeulb.ford.com" +
+        urlPart,
+      "_parent"
+    );
+  }
+
+  static makeAuthor(market, localLanguage, beta, urlPart) {
+    var wrongLink =
+      "/content/guxeu" +
+      beta +
+      "/" +
+      market +
+      "/" +
+      this.fixLocalLanguage(localLanguage, market, true) +
+      "_" +
+      this.fixMarket(market) +
+      "/home" +
+      urlPart;
+
+    if (beta == "-beta" && urlPart != "") {
+      GM_setValue("LinkPart", window.location.search + window.location.hash);
+      GM_setValue("WrongLink", wrongLink);
+      window.open(
+        "https://wwwperf.brandeuauthorlb.ford.com/cf#/etc/guxacc/tools/resource-resolver-tool.html",
+        "_parent"
+      );
+    } else {
+      this.makeRealAuthorLink(wrongLink);
+    }
+  }
+
+  static makeRealAuthorLink(link) {
+    var linkPart = GMGetADeleteValue("LinkPart");
+
+    window.open(
+      "https://wwwperf.brandeuauthorlb.ford.com/" +
+        "editor.html" +
+        link +
+        ".html" +
+        linkPart,
+      "_parent"
+    );
+  }
+
+  static get resolverToolButton() {
+    return document.querySelector("#resolvertool");
+  }
+
+  static get originalPath() {
+    return document.querySelector("#originalPath").textContent;
   }
 }
