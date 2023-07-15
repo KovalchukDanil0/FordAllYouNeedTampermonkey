@@ -5,7 +5,7 @@
 //
 // @author       Gomofob
 //
-// @version      0.6.5
+// @version      0.6.7
 //
 // @namespace    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey
 //
@@ -80,14 +80,18 @@
       AEM.openPropertiesTouchUI()
     );
   }
+
+  if (JIRA.ifJira) {
+    GM.registerMenuCommand("CREATE WF", () => CreateWFButton());
+  }
 })();
 
 (function DetermineEnv() {
   if (AEM.ifWCMWorkflows) {
-    AEM.createWF(GMSetADeleteValue("WFTitle"), GMSetADeleteValue("WFName"));
+    AEM.createWF(GMGetADeleteValue("WFTitle"), GMGetADeleteValue("WFName"));
   } else if (AEM.ifWorkflow) {
     WorkflowFixes();
-  } else if (AEM.ifJira) {
+  } else if (JIRA.ifJira) {
     WFButton();
   } else if (AEM.ifResourceResolver) {
     ResourceResolverGetOrigPath();
@@ -98,19 +102,21 @@
   }*/
 })();
 
+function WorkflowFixes() {
+  AEM.waitForWorkflowTitleInput().then((form) => {
+    form.value = AEM.WFID;
+
+    AEM.getLinksInWF().forEach(
+      (data) => (data.href = data.href.addBetaToLink())
+    );
+  });
+}
+
 function WFButton() {
-  var buttonsContainer = document.querySelector("#opsbar-edit-issue_container");
+  var buttonsContainer = JIRA.buttonsContainer;
+  var createWFButton = buttonsContainer.appendChild(JIRA.createWFButton);
 
-  buttonsContainer.insertAdjacentHTML(
-    "afterend",
-    '<button title="Create workflow" target="_blank" class="aui-button")"><span class="rigger-label">Create workflow</span></button>'
-  );
-
-  document
-    .querySelector(
-      "#stalker > div > div.command-bar > div > div > div > div.aui-toolbar2-primary > button"
-    )
-    .addEventListener("click", CreateWFButton);
+  createWFButton.addEventListener("click", CreateWFButton);
 }
 
 function CreateWFButton() {
@@ -127,30 +133,11 @@ function CreateWFButton() {
   );
 }
 
-function WorkflowFixes() {
-  AEM.waitForElm("#workflow-title-input").then((form) => {
-    form.value = AEM.WFID;
-
-    AEM.getLinksInWF().forEach(
-      (data) => (data.href = data.href.addBetaToLink())
-    );
-  });
-}
-
 function ToEnvironment(env) {
-  var urlPart =
-    window.location.pathname + window.location.search + window.location.hash;
-
-  if (urlPart == "/") {
-    urlPart = "";
-  }
-
-  market = "";
-  localLanguage = "";
-  var beta = "";
+  var isAuthorBeta = false;
 
   // Live
-  if (url.match(regexLive)) {
+  if (AEM.ifLive) {
     if (url.match(/www\.ford\.\w\w\.\w\w/gm)) {
       market = url.replace(regexLive, "$3");
       localLanguage = url.replace(regexLive, "$2");
@@ -162,28 +149,24 @@ function ToEnvironment(env) {
     if (AEM.isMarketInBeta(market)) {
       beta = "-beta";
     }
-
-    DetermineEnv(env, market, localLanguage, beta, urlPart);
   }
   // Perf & Prod
-  else if (url.match(regexPerf)) {
-    if (url.match(/www(perf|prod)-beta-couk\.brandeulb\.ford\.com/gm)) {
-      market = url.replace(regexPerf, "$3");
-      localLanguage = url.replace(regexPerf, "$2");
+  else if (AEM.ifPerfProd) {
+    if (url.match(/www(?:perf|prod)(?:-beta)?-couk\.brandeulb\.ford\.com/gm)) {
+      market = url.replace(regexPerfProd, "$3");
+      localLanguage = url.replace(regexPerfProd, "$2");
     } else {
-      market = url.replace(regexPerf, "$2");
-      localLanguage = url.replace(regexPerf, "$3");
+      market = url.replace(regexPerfProd, "$2");
+      localLanguage = url.replace(regexPerfProd, "$3");
     }
 
-    if (url.includes("-beta")) beta = "-beta";
-
-    DetermineEnv(env, market, localLanguage, beta, urlPart);
+    if (AEM.isMarketInBeta(market)) beta = "-beta";
   }
   // Author
-  else if (url.match(regexAuthor)) {
-    market = AEM.FixMarket(url.replace(regexAuthor, "$2"));
+  else if (AEM.ifAuthor) {
+    market = AEM.fixMarket(url.replace(regexAuthor, "$2"));
 
-    localLanguage = AEM.FixLocalLanguage(
+    localLanguage = AEM.fixLocalLanguage(
       url.replace(regexAuthor, "$3"),
       market,
       false
@@ -192,139 +175,51 @@ function ToEnvironment(env) {
     if (AEM.isMarketInBeta(market)) {
       beta = "-beta";
 
-      AEM.waitForElm(
-        "#accelerator-page > div.info-banner > div:nth-child(1)"
-      ).then((realUrl) => {
+      isAuthorBeta = true;
+      AEM.waitRealAuthorPath().then((realUrl) => {
         urlPart = realUrl.textContent.replace(
           /(?:[\s\S]*)?Your real URL will be : \.\.\. \/home(\S+)?(?:[\s\S]*)?/gm,
           "$1"
         );
 
-        DetermineEnv(env, market, localLanguage, beta, urlPart);
+        AEM.determineEnv(env, market, localLanguage, beta, urlPart);
       });
     } else {
       urlPart = urlPart.replace(
         /(?:.+)?\/content.+\/home(.+)?\.html(?:.+)?/gm,
         "$1"
       );
-
-      DetermineEnv(env, market, localLanguage, beta, urlPart);
     }
   }
-}
 
-function DetermineEnv(env, market, localLanguage, beta, urlPart) {
-  if (market == "") return;
-
-  switch (env) {
-    case "live":
-      MakeLive(market, localLanguage, urlPart);
-      break;
-    case "perf":
-    case "prod":
-      MakePerf(env, market, localLanguage, beta, urlPart);
-      break;
-    case "author":
-      MakeAuthor(market, localLanguage, beta, urlPart);
-      break;
+  if (!isAuthorBeta) {
+    AEM.determineEnv(env, market, localLanguage, beta, urlPart);
   }
-}
-
-function MakeLive(market, localLanguage, urlPart) {
-  var britain = "";
-  if (market == "co") {
-    britain = localLanguage;
-    market += ".";
-    localLanguage = "";
-  }
-
-  if (localLanguage != "") localLanguage += ".";
-
-  window.open(
-    "https://www." + localLanguage + "ford." + market + britain + urlPart,
-    "_parent"
-  );
-}
-
-function MakePerf(env, market, localLanguage, beta, urlPart) {
-  if (market == "uk" || market == "gb") {
-    [localLanguage, market] = [market, localLanguage];
-  }
-
-  window.open(
-    "https://www" +
-      env +
-      beta +
-      "-" +
-      AEM.FixMarket(market) +
-      AEM.FixLocalLanguage(localLanguage) +
-      ".brandeulb.ford.com" +
-      urlPart,
-    "_parent"
-  );
-}
-
-function MakeAuthor(market, localLanguage, beta, urlPart) {
-  var wrongLink =
-    "/content/guxeu" +
-    beta +
-    "/" +
-    market +
-    "/" +
-    AEM.FixLocalLanguage(localLanguage, market, true) +
-    "_" +
-    AEM.FixMarket(market) +
-    "/home" +
-    urlPart;
-
-  GM_setValue("LinkPart", window.location.search + window.location.hash);
-
-  if (beta == "-beta" && urlPart != "") {
-    GM_setValue("WrongLink", wrongLink);
-    window.open(
-      "https://wwwperf.brandeuauthorlb.ford.com/cf#/etc/guxacc/tools/resource-resolver-tool.html",
-      "_parent"
-    );
-  } else {
-    MakeRealAuthorLink(wrongLink);
-  }
-}
-
-function MakeRealAuthorLink(link) {
-  var linkPart = GM_getValue("LinkPart", null);
-
-  window.open(
-    "https://wwwperf.brandeuauthorlb.ford.com/" +
-      "editor.html" +
-      link +
-      ".html" +
-      linkPart,
-    "_parent"
-  );
 }
 
 function ResourceResolverGetOrigPath() {
-  var wrongLink = GMSetADeleteValue("WrongLink");
-  if (wrongLink == null) return;
+  var wrongLink = GMGetADeleteValue("WrongLink");
+  if (wrongLink == "")
+    throw new Error("Link is not defined, resource resolver opened manually");
 
-  AEM.waitForElm("#aliasPath").then((form) => {
+  AEM.waitForAliasPath().then((form) => {
     form.value = wrongLink;
 
-    var button = document.querySelector("#resolvertool");
+    var button = AEM.resolverToolButton;
     button.click();
 
     var intervaID = setInterval(function () {
-      var originalPath = document.querySelector("#originalPath").textContent;
+      var originalPath = AEM.originalPath;
       if (originalPath.trim().length == 0) return;
       clearInterval(intervaID);
 
-      MakeRealAuthorLink(originalPath);
+      AEM.makeRealAuthorLink(originalPath);
     }, 500);
   });
 }
 
-function GMSetADeleteValue(value) {
-  var val = GM_getValue(value, null);
-  if (val != null) GM_setValue(value, null);
+function GMGetADeleteValue(value) {
+  var val = GM_getValue(value, "");
+  if (val != "") GM_setValue(value, "");
   return val;
 }
