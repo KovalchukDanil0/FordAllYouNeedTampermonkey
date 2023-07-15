@@ -3,8 +3,8 @@ const url =
     ? parent.location.href
     : document.location.href;
 
-var market;
-var localLanguage;
+var market = "";
+var localLanguage = "";
 
 var urlPart =
   window.location.pathname + window.location.search + window.location.hash;
@@ -12,7 +12,7 @@ if (urlPart == "/") {
   urlPart = "";
 }
 
-var beta;
+var beta = "";
 
 const regexWorkflow =
   /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/workflow\/packages\/ESM\/\w\w\w\w(?:\/\w\w)?\/(.+)\.html(?:.+)?/gm;
