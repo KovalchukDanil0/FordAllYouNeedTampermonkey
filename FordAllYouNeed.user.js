@@ -74,11 +74,10 @@
       GM.registerMenuCommand("TO AUTHOR", () => ToEnvironment("author"));
     } else {
       GM.registerMenuCommand("TO ANOTHER UI", () => AEM.changeUI());
+      GM.registerMenuCommand("OPEN PROPERTIES TOUCH UI", () =>
+        AEM.openPropertiesTouchUI()
+      );
     }
-
-    GM.registerMenuCommand("OPEN PROPERTIES TOUCH UI", () =>
-      AEM.openPropertiesTouchUI()
-    );
   }
 
   if (JIRA.ifJira) {
