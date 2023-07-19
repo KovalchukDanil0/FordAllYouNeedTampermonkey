@@ -15,7 +15,7 @@ if (urlPart == "/") {
 var beta = "";
 
 const regexWorkflow =
-  /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/workflow\/packages\/ESM\/\w\w\w\w(?:\/\w\w)?\/(.+)\.html(?:.+)?/gm;
+  /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/workflow\/packages\/ESM\/\w\w(?:\w\w)?(?:\/\w\w\w\w)?\/(.+)\.html(?:.+)?/gm;
 const regexWCMWorkflows =
   /wwwperf\.brandeuauthorlb\.ford\.com\/miscadmin#\/etc\/workflow\/packages\/ESM\//gm;
 const regexResourceResolver =
@@ -174,6 +174,15 @@ class AEM {
       case "Ford of Romania":
         fullPath = "RORO";
         break;
+      case "Ford of Greece":
+        fullPath = "ELGR";
+        break;
+      case "Ford of Ireland":
+        fullPath = "IEIE";
+        break;
+      case "Ford of Portugal":
+        fullPath = "PTPT";
+        break;
     }
 
     return fullPath;
@@ -245,73 +254,6 @@ class AEM {
     );
   }
 
-  static fixMarket(market) {
-    const marketsFixAuthor = ["gb"];
-    const marketsFixPerf = ["uk"];
-
-    var idx = marketsFixAuthor.indexOf(market);
-    if (idx >= 0) {
-      return marketsFixPerf[idx];
-    }
-
-    idx = marketsFixPerf.indexOf(market);
-    if (idx >= 0) {
-      return marketsFixAuthor[idx];
-    }
-
-    return market;
-  }
-
-  static fixLocalLanguage(localLanguage, market, toAuthor) {
-    if (toAuthor) {
-      if (localLanguage == "") localLanguage = market;
-
-      switch (market) {
-        case "uk":
-        case "ie":
-          localLanguage = "en";
-          break;
-        case "lu":
-          localLanguage = "fr";
-          break;
-        case "at":
-          localLanguage = "de";
-          break;
-        case "dk":
-          localLanguage = "da";
-          break;
-        case "cz":
-          localLanguage = "cs";
-          break;
-        case "el":
-          localLanguage = "gr";
-          break;
-      }
-    } else {
-      switch (market) {
-        case "lu":
-        case "ie":
-        case "at":
-        case "dk":
-          localLanguage = "";
-          break;
-        case "en":
-          localLanguage = "uk";
-          break;
-        case "cz":
-          localLanguage = "";
-          break;
-        case "gr":
-          localLanguage = "el";
-          break;
-      }
-
-      if (localLanguage == market) localLanguage = "";
-    }
-
-    return localLanguage;
-  }
-
   static waitForWorkflowTitleInput() {
     return this.waitForElm("#workflow-title-input");
   }
@@ -326,30 +268,42 @@ class AEM {
     );
   }
 
-  static waitForElm(selector) {
-    return new Promise((resolve) => {
-      if (document.querySelector(selector)) {
-        return resolve(document.querySelector(selector));
-      }
-
-      const observer = new MutationObserver((mutations) => {
+  static waitForElm(selector, timeout = Number.MAX_VALUE) {
+    return new Promise((resolve) =>
+      setTimeout(function () {
         if (document.querySelector(selector)) {
-          resolve(document.querySelector(selector));
-          observer.disconnect();
+          return resolve(document.querySelector(selector));
         }
-      });
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
-    });
+        const observer = new MutationObserver((mutations) => {
+          if (document.querySelector(selector)) {
+            resolve(document.querySelector(selector));
+            observer.disconnect();
+          }
+        });
+
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+        });
+      }, timeout)
+    );
+  }
+
+  static get resolverToolButton() {
+    return document.querySelector("#resolvertool");
+  }
+
+  static get originalPath() {
+    return document.querySelector("#originalPath").textContent;
   }
 
   static determineEnv(env, market, localLanguage, beta, urlPart) {
     if (market == "") throw new Error("Market is not set!");
 
     switch (env) {
+      default:
+        throw new Error("No such environment");
       case "live":
         this.makeLive(market, localLanguage, urlPart);
         break;
@@ -365,9 +319,9 @@ class AEM {
 
   static makeLive(market, localLanguage, urlPart) {
     var britain = "";
-    if (market == "co") {
-      britain = localLanguage;
-      market += ".";
+    if (market == "uk") {
+      britain = market;
+      market = localLanguage + ".";
       localLanguage = "";
     }
 
@@ -389,8 +343,8 @@ class AEM {
         env +
         beta +
         "-" +
-        this.fixMarket(market) +
-        this.fixLocalLanguage(localLanguage) +
+        market +
+        localLanguage +
         ".brandeulb.ford.com" +
         urlPart,
       "_parent"
@@ -435,11 +389,66 @@ class AEM {
     );
   }
 
-  static get resolverToolButton() {
-    return document.querySelector("#resolvertool");
+  static fixMarket(market) {
+    const marketsFixAuthor = ["gb"];
+    const marketsFixPerf = ["uk"];
+
+    var idx = marketsFixAuthor.indexOf(market);
+    if (idx >= 0) {
+      return marketsFixPerf[idx];
+    }
+
+    idx = marketsFixPerf.indexOf(market);
+    if (idx >= 0) {
+      return marketsFixAuthor[idx];
+    }
+
+    return market;
   }
 
-  static get originalPath() {
-    return document.querySelector("#originalPath").textContent;
+  static fixLocalLanguage(localLanguage, market, toAuthor) {
+    if (toAuthor) {
+      if (localLanguage == "") localLanguage = market;
+
+      switch (market) {
+        case "uk":
+        case "ie":
+          localLanguage = "en";
+          break;
+        case "lu":
+          localLanguage = "fr";
+          break;
+        case "at":
+          localLanguage = "de";
+          break;
+        case "dk":
+          localLanguage = "da";
+          break;
+        case "cz":
+          localLanguage = "cs";
+          break;
+        case "gr":
+          localLanguage = "el";
+          break;
+      }
+    } else {
+      switch (market) {
+        case "cz":
+        case "gr":
+        case "lu":
+        case "ie":
+        case "at":
+        case "dk":
+          localLanguage = "";
+          break;
+        case "uk":
+          localLanguage = "co";
+          break;
+      }
+
+      if (localLanguage == market) localLanguage = "";
+    }
+
+    return localLanguage;
   }
 }
