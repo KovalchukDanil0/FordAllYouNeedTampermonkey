@@ -5,7 +5,7 @@
 //
 // @author       Gomofob
 //
-// @version      0.6.7
+// @version      0.7
 //
 // @namespace    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey
 //
@@ -163,7 +163,7 @@ function ToEnvironment(env) {
   }
   // Author
   else if (AEM.ifAuthor) {
-    market = AEM.fixMarket(url.replace(regexAuthor, "$2"));
+    market = url.replace(regexAuthor, "$2");
 
     localLanguage = AEM.fixLocalLanguage(
       url.replace(regexAuthor, "$3"),
