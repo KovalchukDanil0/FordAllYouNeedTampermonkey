@@ -5,13 +5,15 @@
 //
 // @author       Gomofob
 //
-// @version      0.7
+// @version      0.7.1
 //
 // @namespace    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey
 //
 // @downloadURL  https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
 // @updateURL    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey/raw/main/FordAllYouNeed.user.js
 //
+// @require      https://code.jquery.com/jquery-3.7.0.min.js
+// @require      https://openuserjs.org/src/libs/sizzle/GM_config.js
 // @require      https://raw.githubusercontent.com/KovalchukDanil0/FordAllYouNeedTampermonkey/main/AEMAPI.js
 // @require      https://raw.githubusercontent.com/KovalchukDanil0/FordAllYouNeedTampermonkey/main/JIRAAPI.js
 //
@@ -59,30 +61,54 @@
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
 
+var gmc;
+(function Config() {
+  gmc = new GM_config({
+    id: "MyConfig", // The id used for this instance of GM_config
+    title: "Script Settings", // Panel Title
+    fields: {
+      // This is the id of the field
+      checkbox: {
+        label: "Open links in New window",
+        type: "checkbox",
+        default: true,
+      },
+    },
+    events: {
+      init: function () {},
+      save: function () {},
+    },
+  });
+})();
+
 (function AddMenus() {
   if (AEM.ifLive || AEM.ifPerf || AEM.ifProd || AEM.ifAuthor) {
     if (!AEM.ifLive) {
-      GM.registerMenuCommand("TO LIVE", () => ToEnvironment("live"));
+      GM_registerMenuCommand("TO LIVE", () => ToEnvironment("live"));
     }
     if (!AEM.ifPerf) {
-      GM.registerMenuCommand("TO PERF", () => ToEnvironment("perf"));
+      GM_registerMenuCommand("TO PERF", () => ToEnvironment("perf"));
     }
     if (!AEM.ifProd) {
-      GM.registerMenuCommand("TO PROD", () => ToEnvironment("prod"));
+      GM_registerMenuCommand("TO PROD", () => ToEnvironment("prod"));
     }
     if (!AEM.ifAuthor) {
-      GM.registerMenuCommand("TO AUTHOR", () => ToEnvironment("author"));
+      GM_registerMenuCommand("TO AUTHOR", () => ToEnvironment("author"));
     } else {
-      GM.registerMenuCommand("TO ANOTHER UI", () => AEM.changeUI());
-      GM.registerMenuCommand("OPEN PROPERTIES TOUCH UI", () =>
+      GM_registerMenuCommand("TO ANOTHER UI", () => AEM.changeUI(url));
+      GM_registerMenuCommand("OPEN PROPERTIES TOUCH UI", () =>
         AEM.openPropertiesTouchUI()
       );
     }
+
+    GM_registerMenuCommand("SHOW ALT TEXTS", () => ShowAltTexts());
   }
 
   if (JIRA.ifJira) {
-    GM.registerMenuCommand("CREATE WF", () => CreateWFButton());
+    GM_registerMenuCommand("CREATE WF", () => CreateWFButton());
   }
+
+  GM_registerMenuCommand("OPEN CONFIG (WIP)", () => gmc.open());
 })();
 
 (function DetermineEnv() {
@@ -94,12 +120,77 @@
     WFButton();
   } else if (AEM.ifResourceResolver) {
     ResourceResolverGetOrigPath();
-  } /* else if (AEM.ifAuthor) {
-    if (document.querySelector("body > h1").textContent == "Forbidden") {
-      alert("broken");
+  } else if (AEM.ifAuthor) {
+    /*var links = document.getElementsByTagName("a");
+
+    for (var i = 0; i < links.length; i++) {
+      if (
+        links[i].href.match(
+          /((?:.+)?\/content\/guxeu(?:-beta)?\/(?:\w\w|mothersite)\/(?:\w\w)_\w\w\/(?:.+)?)(\.html|\/)/gm
+        )
+      ) {
+        links[i].href = links[i].href.addBetaToLink();
+        links[i].href.replace(
+          /((?:.+)?\/content\/guxeu(?:-beta)?\/(?:\w\w|mothersite)\/(?:\w\w)_\w\w\/(?:.+)?)(\.html|\/)/gm,
+          "$1.html"
+        );
+      }
+    }*/
+
+    var errorText = document.querySelector("body > header > title");
+    if (
+      errorText != null &&
+      errorText.textContent == "AEM Permissions Required"
+    ) {
+      document.body.innerHTML = "";
+      document.body.insertAdjacentHTML(
+        "afterbegin",
+        '<iframe src="https://http.cat/404" height="600" width="750" title="description"></iframe>' +
+          "<style>body{ text-align:center} .divcss{margin:0 auto;width:500px;height:200px; border:1px solid #ccc}</style>"
+      );
     }
-  }*/
+
+    errorText = document.querySelector("body > h1");
+    if (errorText != null && errorText.textContent == "Forbidden") {
+      document.body.innerHTML = "";
+      document.body.insertAdjacentHTML(
+        "afterbegin",
+        '<iframe src="https://http.cat/403" height="600" width="750" title="description"></iframe>' +
+          "<style>body{ text-align:center} .divcss{margin:0 auto;width:500px;height:200px; border:1px solid #ccc}</style>"
+      );
+    }
+  }
 })();
+
+var altShowed = false;
+function ShowAltTexts() {
+  if (altShowed == true) return;
+
+  const imgElements = document.querySelectorAll("img");
+
+  const noAltText = document.createElement("div");
+  noAltText.classList.add("no-alt-text");
+  noAltText.innerHTML = "This image is decoration";
+
+  const altTextContainer = document.createElement("div");
+
+  for (let i = 0; i < imgElements.length; i++) {
+    var altText = imgElements[i].title;
+
+    if (altText === "") {
+      imgElements[i].after(noAltText.cloneNode(true));
+    } else {
+      const altTextElm = document.createElement("p");
+      altTextElm.textContent = altText;
+
+      altTextContainer.appendChild(altTextElm);
+    }
+  }
+
+  document.body.appendChild(altTextContainer);
+
+  altShowed = true;
+}
 
 function WorkflowFixes() {
   AEM.waitForWorkflowTitleInput().then((form) => {
@@ -108,6 +199,12 @@ function WorkflowFixes() {
     AEM.getLinksInWF().forEach(
       (data) => (data.href = data.href.addBetaToLink())
     );
+
+    $(
+      "#cq-gen7 > div.wrapper-conf > div > div:nth-child(3) > div > div > div:nth-child(2)"
+    ).bind("DOMNodeInserted", function () {
+      alert("child is appended");
+    });
   });
 }
 
