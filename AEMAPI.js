@@ -26,7 +26,7 @@ const regexLive =
 const regexPerfProd =
   /(?:.+)?www(perf|prod)(?:-beta)?-(\w\w)(\w\w)?\.brandeulb\.ford\.com(?:.+)?/gm;
 const regexAuthor =
-  /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(?:\/(?:editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?)\.html(?:.+)?/gm;
+  /(?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com(?:\/(?:editor\.html|cf#))?(\/content\/guxeu(?:-beta)?\/(\w\w|mothersite)\/(\w\w)_\w\w\/(?:.+)?)(?:\.html|\/)(?:.+)?/gm;
 const marketsInBeta = [
   "uk",
   "de",
@@ -40,6 +40,28 @@ const marketsInBeta = [
   "pl",
   "dk",
 ];
+
+function waitForElm(selector, timeout = Number.MAX_VALUE) {
+  return new Promise((resolve) =>
+    setTimeout(function () {
+      if (document.querySelector(selector)) {
+        return resolve(document.querySelector(selector));
+      }
+
+      const observer = new MutationObserver((mutations) => {
+        if (document.querySelector(selector)) {
+          resolve(document.querySelector(selector));
+          observer.disconnect();
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    }, timeout)
+  );
+}
 
 String.prototype.addBetaToLink = function () {
   const regexDetermineBeta = /(.+)?(\/content\/guxeu(?:-beta)?\/(?:.+)?)/gm;
@@ -183,13 +205,16 @@ class AEM {
       case "Ford of Portugal":
         fullPath = "PTPT";
         break;
+      case "Ford of Hungary":
+        fullPath = "HUHU";
+        break;
     }
 
     return fullPath;
   }
 
   static wfPathFromTitle(title) {
-    const regexWFTitle = /^(\w\w)(\w\w)?(?:.+)?/gm;
+    const regexWFTitle = /^(?:NWP_)?(\w\w)(\w\w)?(?:.+)?/gm;
 
     market = title.replace(regexWFTitle, "$1");
     localLanguage = title.replace(regexWFTitle, "$2");
@@ -210,20 +235,20 @@ class AEM {
         "WFTitle or WFName are not defined, workflows opened manually"
       );
 
-    this.waitForElm(
+    waitForElm(
       "#cq-gen75 > div.x-grid3-row.x-grid3-row-first > table > tbody > tr > td.x-grid3-col.x-grid3-cell.x-grid3-td-title > div"
     ).then((firstItemInList) => {
       var button = document.getElementById("cq-gen91");
       button.click();
 
-      this.waitForElm("#ext-comp-1079").then((form) => {
+      waitForElm("#ext-comp-1079").then((form) => {
         form.value = WFTitle;
 
         form = document.querySelector("#ext-comp-1080");
         form.value = WFName;
       });
 
-      this.waitForElm("#ext-comp-1076 > div:nth-child(3)").then(
+      waitForElm("#ext-comp-1076 > div:nth-child(3)").then(
         (promotionButton) => {
           promotionButton.click();
         }
@@ -231,16 +256,16 @@ class AEM {
     });
   }
 
-  static changeUI() {
+  static changeUI(link) {
     const regexChangeUI =
       /((?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com)((?:\/)?(?:editor\.html|cf#)?\/)(content(?:.+)?)/gm;
 
-    var authorUI = url.replace(regexChangeUI, "$2");
+    var authorUI = link.replace(regexChangeUI, "$2");
     var newUrl;
 
     if (authorUI == "/editor.html/")
-      newUrl = url.replace(regexChangeUI, "$1/cf#/$3");
-    else newUrl = url.replace(regexChangeUI, "$1/editor.html/$3");
+      newUrl = link.replace(regexChangeUI, "$1/cf#/$3");
+    else newUrl = link.replace(regexChangeUI, "$1/editor.html/$3");
 
     window.open(newUrl, "_parent");
   }
@@ -255,39 +280,15 @@ class AEM {
   }
 
   static waitForWorkflowTitleInput() {
-    return this.waitForElm("#workflow-title-input");
+    return waitForElm("#workflow-title-input");
   }
 
   static waitForAliasPath() {
-    return this.waitForElm("#aliasPath");
+    return waitForElm("#aliasPath");
   }
 
   static waitRealAuthorPath() {
-    return this.waitForElm(
-      "#accelerator-page > div.info-banner > div:nth-child(1)"
-    );
-  }
-
-  static waitForElm(selector, timeout = Number.MAX_VALUE) {
-    return new Promise((resolve) =>
-      setTimeout(function () {
-        if (document.querySelector(selector)) {
-          return resolve(document.querySelector(selector));
-        }
-
-        const observer = new MutationObserver((mutations) => {
-          if (document.querySelector(selector)) {
-            resolve(document.querySelector(selector));
-            observer.disconnect();
-          }
-        });
-
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true,
-        });
-      }, timeout)
-    );
+    return waitForElm("#accelerator-page > div.info-banner > div:nth-child(1)");
   }
 
   static get resolverToolButton() {
@@ -368,7 +369,7 @@ class AEM {
       GM_setValue("LinkPart", window.location.search + window.location.hash);
       GM_setValue("WrongLink", wrongLink);
       window.open(
-        "https://wwwperf.brandeuauthorlb.ford.com/cf#/etc/guxacc/tools/resource-resolver-tool.html",
+        "https://wwwperf.brandeuauthorlb.ford.com/etc/guxacc/tools/resource-resolver-tool.html",
         "_parent"
       );
     } else {
