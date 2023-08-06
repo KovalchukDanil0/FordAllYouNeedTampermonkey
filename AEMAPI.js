@@ -20,6 +20,8 @@ const regexWCMWorkflows =
   /wwwperf\.brandeuauthorlb\.ford\.com\/miscadmin#\/etc\/workflow\/packages\/ESM\//gm;
 const regexResourceResolver =
   /wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/guxacc\/tools\/resource\-resolver\-tool/gm;
+const regexFindAndReplaceLinks =
+  /wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/guxfoe\/tools\/find\-replace\-links/gm;
 
 const regexLive =
   /(?:.+)?(?:secure|www)(?:\.(\w\w))?\.ford\.(\w\w)(?:\.(\w\w))?(?:.+)?/gm;
@@ -96,6 +98,10 @@ class AEM {
 
   static get ifResourceResolver() {
     return url.match(regexResourceResolver);
+  }
+
+  static get ifFindAndReplace() {
+    return url.match(regexFindAndReplaceLinks);
   }
 
   static get ifLive() {
@@ -256,7 +262,7 @@ class AEM {
     });
   }
 
-  static changeUI(link) {
+  static changeUI(link, newTab) {
     const regexChangeUI =
       /((?:.+)?wwwperf\.brandeu(?:author)?lb\.ford\.com)((?:\/)?(?:editor\.html|cf#)?\/)(content(?:.+)?)/gm;
 
@@ -267,7 +273,7 @@ class AEM {
       newUrl = link.replace(regexChangeUI, "$1/cf#/$3");
     else newUrl = link.replace(regexChangeUI, "$1/editor.html/$3");
 
-    window.open(newUrl, "_parent");
+    window.open(newUrl, newTab ? "_blank" : "_parent");
   }
 
   static openPropertiesTouchUI() {
@@ -299,26 +305,26 @@ class AEM {
     return document.querySelector("#originalPath").textContent;
   }
 
-  static determineEnv(env, market, localLanguage, beta, urlPart) {
+  static determineEnv(env, market, localLanguage, beta, urlPart, newTab) {
     if (market == "") throw new Error("Market is not set!");
 
     switch (env) {
       default:
         throw new Error("No such environment");
       case "live":
-        this.makeLive(market, localLanguage, urlPart);
+        this.makeLive(market, localLanguage, urlPart, newTab);
         break;
       case "perf":
       case "prod":
-        this.makePerf(env, market, localLanguage, beta, urlPart);
+        this.makePerf(env, market, localLanguage, beta, urlPart, newTab);
         break;
       case "author":
-        this.makeAuthor(market, localLanguage, beta, urlPart);
+        this.makeAuthor(market, localLanguage, beta, urlPart, newTab);
         break;
     }
   }
 
-  static makeLive(market, localLanguage, urlPart) {
+  static makeLive(market, localLanguage, urlPart, newTab) {
     var britain = "";
     if (market == "uk") {
       britain = market;
@@ -330,11 +336,11 @@ class AEM {
 
     window.open(
       "https://www." + localLanguage + "ford." + market + britain + urlPart,
-      "_parent"
+      newTab ? "_blank" : "_parent"
     );
   }
 
-  static makePerf(env, market, localLanguage, beta, urlPart) {
+  static makePerf(env, market, localLanguage, beta, urlPart, newTab) {
     if (market == "uk" || market == "gb") {
       [localLanguage, market] = [market, localLanguage];
     }
@@ -348,11 +354,11 @@ class AEM {
         localLanguage +
         ".brandeulb.ford.com" +
         urlPart,
-      "_parent"
+      newTab ? "_blank" : "_parent"
     );
   }
 
-  static makeAuthor(market, localLanguage, beta, urlPart) {
+  static makeAuthor(market, localLanguage, beta, urlPart, newTab) {
     var wrongLink =
       "/content/guxeu" +
       beta +
@@ -370,14 +376,14 @@ class AEM {
       GM_setValue("WrongLink", wrongLink);
       window.open(
         "https://wwwperf.brandeuauthorlb.ford.com/etc/guxacc/tools/resource-resolver-tool.html",
-        "_parent"
+        newTab ? "_blank" : "_parent"
       );
     } else {
-      this.makeRealAuthorLink(wrongLink);
+      this.makeRealAuthorLink(wrongLink, newTab);
     }
   }
 
-  static makeRealAuthorLink(link) {
+  static makeRealAuthorLink(link, newTab) {
     var linkPart = GMGetADeleteValue("LinkPart");
 
     window.open(
@@ -386,7 +392,7 @@ class AEM {
         link +
         ".html" +
         linkPart,
-      "_parent"
+      newTab ? "_blank" : "_parent"
     );
   }
 
