@@ -5,7 +5,7 @@
 //
 // @author       Gomofob
 //
-// @version      0.7.1
+// @version      0.7.5
 //
 // @namespace    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey
 //
@@ -52,64 +52,178 @@
 // @match        https://*.brandeulb.ford.com/*
 //
 // @match        https://*.brandeuauthorlb.ford.com/content/*
-// @match        https://*.brandeuauthorlb.ford.com/etc/guxacc/tools/resource-resolver-tool.html
 // @match        https://*.brandeuauthorlb.ford.com/miscadmin
 // @match        https://*.brandeuauthorlb.ford.com/etc/workflow/packages/ESM/*
+// @match        https://*.brandeuauthorlb.ford.com/etc/guxacc/tools/resource-resolver-tool.html
+// @match        https://*.brandeuauthorlb.ford.com/etc/guxfoe/tools/find-replace-links.html
 //
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_registerMenuCommand
+// @grant        GM_unregisterMenuCommand
 // ==/UserScript==
 
-var gmc;
-(function Config() {
-  gmc = new GM_config({
-    id: "MyConfig", // The id used for this instance of GM_config
-    title: "Script Settings", // Panel Title
-    fields: {
-      // This is the id of the field
-      checkbox: {
-        label: "Open links in New window",
-        type: "checkbox",
-        default: true,
-      },
+const gmc = new GM_config({
+  id: "MyConfig",
+  title: "Script Settings",
+  fields: {
+    openInNewTab: {
+      label: "Open in new tab",
+      type: "checkbox",
+      default: false,
     },
-    events: {
-      init: function () {},
-      save: function () {},
+    fixFindReplace: {
+      label: "Fix Find&Replace",
+      type: "checkbox",
+      default: false,
     },
-  });
-})();
+    catErrors: {
+      label: "Cat Errors",
+      type: "checkbox",
+      default: false,
+    },
+  },
+  events: {
+    init: function () {},
+    save: function () {
+      gmc.close();
+    },
+  },
+});
 
-(function AddMenus() {
+let onInit = (config) =>
+  new Promise((resolve) => {
+    let isInit = () =>
+      setTimeout(() => (config.isInit ? resolve() : isInit()), 0);
+    isInit();
+  });
+
+let init = onInit(gmc);
+
+/*example promise
+  init.then(() => {
+    let val = gmc.get('val_1');
+  });*/
+
+const menuCommandNames = {
+  toLive: {
+    command: null,
+    name: "TO LIVE",
+  },
+  toPerf: {
+    command: null,
+    name: "TO PERF",
+  },
+  toProd: {
+    command: null,
+    name: "TO PROD",
+  },
+  toAuthor: {
+    command: null,
+    name: "TO AUTHOR",
+  },
+  toAuthorUI: {
+    command: null,
+    name: "TO ANOTHER UI",
+  },
+  openPropertiesTouchUI: {
+    command: null,
+    name: "OPEN PROPERTIES TOUCH UI",
+  },
+  showAltTexts: {
+    command: null,
+    name: "SHOW ALT TEXTS",
+  },
+  highlightHeadings: {
+    command: null,
+    name: "HIGHLIGHT HEADINGS",
+  },
+  createWF: {
+    command: null,
+    name: "CREATE WF",
+  },
+  openConfig: {
+    command: null,
+    name: "OPEN CONFIG (WIP)",
+  },
+};
+
+AddMenus();
+function AddMenus(idxChange = null, textToChange = null) {
+  if (idxChange != null || textToChange != null) {
+    RemoveMenus();
+    menuCommandNames[idxChange].name = textToChange;
+  }
+
   if (AEM.ifLive || AEM.ifPerf || AEM.ifProd || AEM.ifAuthor) {
     if (!AEM.ifLive) {
-      GM_registerMenuCommand("TO LIVE", () => ToEnvironment("live"));
-    }
-    if (!AEM.ifPerf) {
-      GM_registerMenuCommand("TO PERF", () => ToEnvironment("perf"));
-    }
-    if (!AEM.ifProd) {
-      GM_registerMenuCommand("TO PROD", () => ToEnvironment("prod"));
-    }
-    if (!AEM.ifAuthor) {
-      GM_registerMenuCommand("TO AUTHOR", () => ToEnvironment("author"));
-    } else {
-      GM_registerMenuCommand("TO ANOTHER UI", () => AEM.changeUI(url));
-      GM_registerMenuCommand("OPEN PROPERTIES TOUCH UI", () =>
-        AEM.openPropertiesTouchUI()
+      menuCommandNames["toLive"].command = GM_registerMenuCommand(
+        menuCommandNames["toLive"].name,
+        () => ToEnvironment("live")
       );
     }
+    if (!AEM.ifPerf) {
+      menuCommandNames["toPerf"].command = GM_registerMenuCommand(
+        menuCommandNames["toPerf"].name,
+        () => ToEnvironment("perf")
+      );
+    }
+    if (!AEM.ifProd) {
+      menuCommandNames["toProd"].command = GM_registerMenuCommand(
+        menuCommandNames["toProd"].name,
+        () => ToEnvironment("prod")
+      );
+    }
+    if (!AEM.ifAuthor) {
+      menuCommandNames["toAuthor"].command = GM_registerMenuCommand(
+        menuCommandNames["toAuthor"].name,
+        () => ToEnvironment("author")
+      );
+    } else {
+      menuCommandNames["toAuthorUI"].command = GM_registerMenuCommand(
+        menuCommandNames["toAuthorUI"].name,
+        () =>
+          function () {
+            init.then(() => {
+              AEM.changeUI(url, gmc.get("openInNewTab"));
+            });
+          }
+      );
+      menuCommandNames["openPropertiesTouchUI"].command =
+        GM_registerMenuCommand(
+          menuCommandNames["openPropertiesTouchUI"].name,
+          () => AEM.openPropertiesTouchUI()
+        );
+    }
 
-    GM_registerMenuCommand("SHOW ALT TEXTS", () => ShowAltTexts());
+    menuCommandNames["showAltTexts"].command = GM_registerMenuCommand(
+      menuCommandNames["showAltTexts"].name,
+      () => ShowAltTexts()
+    );
+    menuCommandNames["highlightHeadings"].command = GM_registerMenuCommand(
+      menuCommandNames["highlightHeadings"].name,
+      () => HighlightHeading()
+    );
   }
 
   if (JIRA.ifJira) {
-    GM_registerMenuCommand("CREATE WF", () => CreateWFButton());
+    menuCommandNames["createWF"].command = GM_registerMenuCommand(
+      menuCommandNames["createWF"].name,
+      () => CreateWFButton()
+    );
   }
 
-  GM_registerMenuCommand("OPEN CONFIG (WIP)", () => gmc.open());
-})();
+  menuCommandNames["openConfig"].command = GM_registerMenuCommand(
+    menuCommandNames["openConfig"].name,
+    () => gmc.open()
+  );
+}
+
+function RemoveMenus() {
+  for (let menu in menuCommandNames) {
+    GM_unregisterMenuCommand(menuCommandNames[menu].command);
+  }
+}
 
 (function DetermineEnv() {
   if (AEM.ifWCMWorkflows) {
@@ -120,22 +234,227 @@ var gmc;
     WFButton();
   } else if (AEM.ifResourceResolver) {
     ResourceResolverGetOrigPath();
+  } else if (AEM.ifFindAndReplace) {
+    FindAndReplaceFix();
   } else if (AEM.ifAuthor) {
-    /*var links = document.getElementsByTagName("a");
+    CatErrors();
+  }
+})();
 
-    for (var i = 0; i < links.length; i++) {
-      if (
-        links[i].href.match(
-          /((?:.+)?\/content\/guxeu(?:-beta)?\/(?:\w\w|mothersite)\/(?:\w\w)_\w\w\/(?:.+)?)(\.html|\/)/gm
-        )
-      ) {
-        links[i].href = links[i].href.addBetaToLink();
-        links[i].href.replace(
-          /((?:.+)?\/content\/guxeu(?:-beta)?\/(?:\w\w|mothersite)\/(?:\w\w)_\w\w\/(?:.+)?)(\.html|\/)/gm,
-          "$1.html"
-        );
-      }
-    }*/
+const className = "highlight-heading-ext";
+const headings = {
+  h1: {
+    elements: [],
+    bg: "yellow",
+    color: "#000",
+    count: 0,
+  },
+  h2: {
+    elements: [],
+    bg: "orange",
+    color: "#000",
+    count: 0,
+  },
+  h3: {
+    elements: [],
+    bg: "blue",
+    color: "#fff",
+    count: 0,
+  },
+  h4: {
+    elements: [],
+    bg: "purple",
+    color: "#fff",
+    count: 0,
+  },
+  h5: {
+    elements: [],
+    bg: "cyan",
+    color: "#000",
+    count: 0,
+  },
+  h6: {
+    elements: [],
+    bg: "black",
+    color: "#fff",
+    count: 0,
+  },
+};
+const keyContainerId = "hheContainer";
+const keyId = "hheKey";
+const styleTagId = "hheStyleTag";
+const r = (node) => node && node.remove();
+var headingsHighlighted = false;
+function HighlightHeading() {
+  var HHMenuText;
+  if (!headingsHighlighted) {
+    headingsHighlighted = true;
+    HHMenuText = "UNHIGHLIGHT HEADINGS";
+    init();
+  } else {
+    headingsHighlighted = false;
+    HHMenuText = "HIGHLIGHT HEADINGS";
+    resetDOM();
+  }
+
+  AddMenus("highlightHeadings", HHMenuText);
+
+  function init() {
+    document.body.classList.add(className);
+    initialiseHeadings();
+    appendKeyToDOM();
+    insertBadgeStyles();
+  }
+
+  function initialiseHeadings() {
+    for (let h in headings) {
+      headings[h].elements = [...document.body.querySelectorAll(h)];
+      headings[h].count = headings[h].elements.length;
+    }
+  }
+
+  function appendKeyToDOM() {
+    const container = document.createElement("div");
+    container.id = keyContainerId;
+    container.innerHTML = `<div id="${keyId}">${createKey()}</div>`;
+    document.body.appendChild(container);
+  }
+
+  function insertBadgeStyles() {
+    document.head.appendChild(getStyles());
+  }
+
+  function getHeadingClassNames() {
+    return Object.getOwnPropertyNames(headings).reduce((prev, curr) => {
+      return (
+        prev +
+        `.${className} ${curr} { 
+          outline: 3px solid ${headings[curr].bg} !important; 
+       }`
+      );
+    }, "");
+  }
+
+  function getStyles() {
+    const styleEl = document.createElement("style");
+    styleEl.id = styleTagId;
+    styleEl.innerHTML = `
+    #${keyId} {
+      background: #fff;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      min-height: 16px;
+      padding: 6px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 999999;
+    }
+
+    #${keyId} p {
+        font-size: 20px;
+        margin: 0;
+        padding: 6px;
+    }
+
+    #${keyId}:hover {
+      /** If you want to see something behind it **/
+      opacity: 0.1;
+    }
+
+    ${getHeadingClassNames()}
+  `;
+    return styleEl;
+  }
+
+  function createKey() {
+    return Object.getOwnPropertyNames(headings)
+      .map(
+        (h) =>
+          `<p style="background-color: ${headings[h].bg}; color: ${headings[h].color}">Heading : ${h}, count: ${headings[h].count}</p>`
+      )
+      .join("");
+  }
+
+  function hasExecuted() {
+    const styles = document.querySelector(`#${styleTagId}`);
+    const key = document.querySelector(`#${keyId}`);
+    return Boolean(styles || key);
+  }
+
+  function resetDOM() {
+    r(document.querySelector(`#${keyContainerId}`));
+    r(document.querySelector(`#${styleTagId}`));
+    document.body.classList.remove(className);
+  }
+}
+
+// not forking after second validation
+var findRepalceFixed = false;
+function FindAndReplaceFix() {
+  init.then(() => {
+    if (!gmc.get("fixFindReplace")) return;
+
+    waitForElm(
+      "#cq-gen4 > div > div > div.find-replace-links.ng-scope > div.content.first > div.root-path-selection > button:nth-child(4)"
+    ).then((validateButton) => {
+      validateButton.addEventListener("click", function () {
+        if (findRepalceFixed) return;
+
+        waitForElm(".link-to-input").then(() => {
+          const regexRemoveEndLink = /(.+?)(\.html(?:.+)?)?/gm;
+          findRepalceFixed = true;
+
+          var inputFields = document.querySelectorAll(".link-to-input");
+          var nonSimilarElements = [];
+          inputFields.forEach((element) => {
+            var linkWithoutHtml = element.value.replace(
+              regexRemoveEndLink,
+              "$1"
+            );
+
+            if (!nonSimilarElements.includes(linkWithoutHtml)) {
+              nonSimilarElements.push(linkWithoutHtml);
+
+              var similarElements = [];
+
+              var linkOnlyHtml = element.value.replace(
+                regexRemoveEndLink,
+                "$2"
+              );
+
+              inputFields.forEach((element2) => {
+                if (
+                  linkWithoutHtml ==
+                  element2.value.replace(regexRemoveEndLink, "$1")
+                ) {
+                  similarElements.push(element2);
+                }
+              });
+
+              element.addEventListener("change", function () {
+                var clearLink = element.value.replace(regexRemoveEndLink, "$1");
+
+                similarElements.forEach((similarElm) => {
+                  similarElm.value =
+                    clearLink +
+                    similarElm.value.replace(regexRemoveEndLink, "$2");
+                });
+                element.value = clearLink + linkOnlyHtml;
+              });
+            } else {
+              element.parentElement.style.display = "none";
+            }
+          });
+        });
+      });
+    });
+  });
+}
+
+function CatErrors() {
+  init.then(() => {
+    if (!gmc.get("catErrors")) return;
 
     var errorText = document.querySelector("body > header > title");
     if (
@@ -145,8 +464,7 @@ var gmc;
       document.body.innerHTML = "";
       document.body.insertAdjacentHTML(
         "afterbegin",
-        '<iframe src="https://http.cat/404" height="600" width="750" title="description"></iframe>' +
-          "<style>body{ text-align:center} .divcss{margin:0 auto;width:500px;height:200px; border:1px solid #ccc}</style>"
+        '<img style="display: block;-webkit-user-select: none; display: block; margin-left: auto; margin-right: auto; width: 50%;" src="https://http.cat/404">'
       );
     }
 
@@ -155,41 +473,55 @@ var gmc;
       document.body.innerHTML = "";
       document.body.insertAdjacentHTML(
         "afterbegin",
-        '<iframe src="https://http.cat/403" height="600" width="750" title="description"></iframe>' +
-          "<style>body{ text-align:center} .divcss{margin:0 auto;width:500px;height:200px; border:1px solid #ccc}</style>"
+        '<img style="display: block;-webkit-user-select: none; display: block; margin-left: auto; margin-right: auto; width: 50%;" src="https://http.cat/403">'
       );
     }
-  }
-})();
+  });
+}
+
+var altTextContainerElm;
 
 var altShowed = false;
 function ShowAltTexts() {
-  if (altShowed == true) return;
+  var SATMenuText;
+  if (!altShowed) {
+    const imgElements = document.querySelectorAll("img");
 
-  const imgElements = document.querySelectorAll("img");
+    const noAltText = document.createElement("div");
+    noAltText.classList.add("noAltText");
+    noAltText.innerHTML = "This image is decoration";
 
-  const noAltText = document.createElement("div");
-  noAltText.classList.add("no-alt-text");
-  noAltText.innerHTML = "This image is decoration";
+    const altTextContainer = document.createElement("div");
+    altTextContainer.classList.add("altTextExist");
 
-  const altTextContainer = document.createElement("div");
+    for (let i = 0; i < imgElements.length; i++) {
+      var altText = imgElements[i].title;
 
-  for (let i = 0; i < imgElements.length; i++) {
-    var altText = imgElements[i].title;
+      if (altText === "") {
+        imgElements[i].after(noAltText.cloneNode(true));
+      } else {
+        const altTextElm = document.createElement("p");
+        altTextElm.textContent = altText;
 
-    if (altText === "") {
-      imgElements[i].after(noAltText.cloneNode(true));
-    } else {
-      const altTextElm = document.createElement("p");
-      altTextElm.textContent = altText;
-
-      altTextContainer.appendChild(altTextElm);
+        altTextContainer.appendChild(altTextElm);
+      }
     }
+
+    altTextContainerElm = document.body.appendChild(altTextContainer);
+
+    SATMenuText = "HIDE ALT TEXTS";
+    altShowed = true;
+  } else {
+    document.querySelectorAll(".noAltText").forEach((element) => {
+      element.remove();
+    });
+    altTextContainerElm.remove();
+
+    SATMenuText = "SHOW ALT TEXTS";
+    altShowed = false;
   }
 
-  document.body.appendChild(altTextContainer);
-
-  altShowed = true;
+  AddMenus("showAltTexts", SATMenuText);
 }
 
 function WorkflowFixes() {
@@ -278,7 +610,16 @@ function ToEnvironment(env) {
           "$1"
         );
 
-        AEM.determineEnv(env, market, localLanguage, beta, urlPart);
+        init.then(() => {
+          AEM.determineEnv(
+            env,
+            market,
+            localLanguage,
+            beta,
+            urlPart,
+            gmc.get("openInNewTab")
+          );
+        });
       });
     } else {
       urlPart = urlPart.replace(
@@ -289,7 +630,16 @@ function ToEnvironment(env) {
   }
 
   if (!isAuthorBeta) {
-    AEM.determineEnv(env, market, localLanguage, beta, urlPart);
+    init.then(() => {
+      AEM.determineEnv(
+        env,
+        market,
+        localLanguage,
+        beta,
+        urlPart,
+        gmc.get("openInNewTab")
+      );
+    });
   }
 }
 
@@ -305,7 +655,7 @@ function ResourceResolverGetOrigPath() {
     button.click();
 
     var intervaID = setInterval(function () {
-      var originalPath = AEM.originalPath;
+      var originalPath = AEM.originalPath.replace("-gf3-test", "");
       if (originalPath.trim().length == 0) return;
       clearInterval(intervaID);
 
