@@ -18,6 +18,7 @@ const regexWorkflow =
   /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/workflow\/packages\/ESM\/\w\w(?:\w\w)?(?:\/\w\w\w\w)?\/(.+)\.html(?:.+)?/gm;
 const regexWCMWorkflows =
   /wwwperf\.brandeuauthorlb\.ford\.com\/miscadmin#\/etc\/workflow\/packages\/ESM\//gm;
+const regexInbox = /wwwperf\.brandeuauthorlb\.ford\.com\/inbox/gm;
 const regexResourceResolver =
   /wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/guxacc\/tools\/resource\-resolver\-tool/gm;
 const regexFindAndReplaceLinks =
@@ -94,6 +95,10 @@ class AEM {
 
   static get ifWCMWorkflows() {
     return url.match(regexWCMWorkflows);
+  }
+
+  static get ifInbox() {
+    return url.match(regexInbox);
   }
 
   static get ifResourceResolver() {
