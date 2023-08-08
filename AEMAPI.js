@@ -75,8 +75,6 @@ String.prototype.addBetaToLink = function () {
   }
 };
 
-
-
 class AEM {
   /*static number(value) {
     this.value = value;
