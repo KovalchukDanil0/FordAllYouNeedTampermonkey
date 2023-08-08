@@ -75,6 +75,8 @@ String.prototype.addBetaToLink = function () {
   }
 };
 
+
+
 class AEM {
   /*static number(value) {
     this.value = value;
@@ -273,6 +275,8 @@ class AEM {
 
     var authorUI = link.replace(regexChangeUI, "$2");
     var newUrl;
+
+    console.log(authorUI);
 
     if (authorUI == "/editor.html/")
       newUrl = link.replace(regexChangeUI, "$1/cf#/$3");
