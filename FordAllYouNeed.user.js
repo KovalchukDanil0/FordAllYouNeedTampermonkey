@@ -5,7 +5,7 @@
 //
 // @author       Gomofob
 //
-// @version      0.7.5
+// @version      0.7.6
 //
 // @namespace    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey
 //
@@ -28,7 +28,6 @@
 // @match        https://www.ford.gr/*
 // @match        https://www.ford.ro/*
 // @match        https://www.ford.lu/*
-// @match        https://www.ford.ru/*
 //
 // @match        https://www.fr.ford.be/*
 // @match        https://www.nl.ford.be/*
@@ -56,6 +55,7 @@
 // @match        https://*.brandeuauthorlb.ford.com/etc/workflow/packages/ESM/*
 // @match        https://*.brandeuauthorlb.ford.com/etc/guxacc/tools/resource-resolver-tool.html
 // @match        https://*.brandeuauthorlb.ford.com/etc/guxfoe/tools/find-replace-links.html
+// @match        https://*.brandeuauthorlb.ford.com/inbox
 //
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -73,12 +73,17 @@ const gmc = new GM_config({
       default: false,
     },
     fixFindReplace: {
-      label: "Fix Find&Replace",
+      label: "Fix Find&Replace !!NOT WORKING AT ALL!!",
       type: "checkbox",
       default: false,
     },
     catErrors: {
       label: "Cat Errors",
+      type: "checkbox",
+      default: false,
+    },
+    russkiMatErrors: {
+      label: "Russki Mat Errors",
       type: "checkbox",
       default: false,
     },
@@ -183,11 +188,9 @@ function AddMenus(idxChange = null, textToChange = null) {
       menuCommandNames["toAuthorUI"].command = GM_registerMenuCommand(
         menuCommandNames["toAuthorUI"].name,
         () =>
-          function () {
-            init.then(() => {
-              AEM.changeUI(url, gmc.get("openInNewTab"));
-            });
-          }
+          init.then(() => {
+            AEM.changeUI(url, gmc.get("openInNewTab"));
+          })
       );
       menuCommandNames["openPropertiesTouchUI"].command =
         GM_registerMenuCommand(
@@ -230,6 +233,8 @@ function RemoveMenus() {
     AEM.createWF(GMGetADeleteValue("WFTitle"), GMGetADeleteValue("WFName"));
   } else if (AEM.ifWorkflow) {
     WorkflowFixes();
+  } else if (AEM.ifInbox) {
+    CancelWF();
   } else if (JIRA.ifJira) {
     WFButton();
   } else if (AEM.ifResourceResolver) {
@@ -239,7 +244,332 @@ function RemoveMenus() {
   } else if (AEM.ifAuthor) {
     CatErrors();
   }
+
+  if (AEM.ifAuthor || AEM.ifPerfProd || AEM.ifLive) {
+    RusskiMatAsErrors();
+  }
 })();
+
+function RusskiMatAsErrors() {
+  init.then(() => {
+    if (!gmc.get("russkiMatErrors")) return;
+
+    function ReplaceByRandElmArray(string, replaceArray) {
+      string = string.replace(/\S+/gm, function () {
+        return replaceArray[Math.floor(Math.random() * replaceArray.length)];
+      });
+
+      return string;
+    }
+
+    var arrayRusskiMat = [
+      "архипиздрит",
+      "басран",
+      "бздение",
+      "бздеть",
+      "бздех",
+      "бзднуть",
+      "бздун",
+      "бздунья",
+      "бздюха",
+      "бикса",
+      "блежник",
+      "блудилище",
+      "бляд",
+      "блябу",
+      "блябуду",
+      "блядун",
+      "блядунья",
+      "блядь",
+      "блядюга",
+      "взьебка",
+      "волосянка",
+      "взьебывать",
+      "взебывать",
+      "выблядок",
+      "выблядыш",
+      "выебать",
+      "выеть",
+      "выпердеть",
+      "высраться",
+      "выссаться",
+      "говенка",
+      "говенный",
+      "говешка",
+      "говназия",
+      "говнецо",
+      "говно",
+      "говноед",
+      "говночист",
+      "говнюк",
+      "говнюха",
+      "говнядина",
+      "говняк",
+      "говняный",
+      "говнять",
+      "гондон",
+      "дермо",
+      "долбоеб",
+      "дрисня",
+      "дрист",
+      "дристать",
+      "дристануть",
+      "дристун",
+      "дристуха",
+      "дрочена",
+      "дрочила",
+      "дрочилка",
+      "дрочить",
+      "дрочка",
+      "ебало",
+      "ебальник",
+      "ебануть",
+      "ебаный",
+      "ебарь",
+      "ебатория",
+      "ебать",
+      "ебаться",
+      "ебец",
+      "ебливый",
+      "ебля",
+      "ебнуть",
+      "ебнуться",
+      "ебня",
+      "ебун",
+      "елда",
+      "елдак",
+      "елдачить",
+      "заговнять",
+      "задристать",
+      "задрока",
+      "заеба",
+      "заебанец",
+      "заебать",
+      "заебаться",
+      "заебываться",
+      "заеть",
+      "залупа",
+      "залупаться",
+      "залупить",
+      "залупиться",
+      "замудохаться",
+      "засерун",
+      "засеря",
+      "засерать",
+      "засирать",
+      "засранец",
+      "засрун",
+      "захуячить",
+      "злоебучий",
+      "изговнять",
+      "изговняться",
+      "кляпыжиться",
+      "курва",
+      "курвенок",
+      "курвин",
+      "курвяжник",
+      "курвяжница",
+      "курвяжный",
+      "манда",
+      "мандавошка",
+      "мандей",
+      "мандеть",
+      "мандища",
+      "мандюк",
+      "минет",
+      "минетчик",
+      "минетчица",
+      "мокрохвостка",
+      "мокрощелка",
+      "мудак",
+      "муде",
+      "мудеть",
+      "мудила",
+      "мудистый",
+      "мудня",
+      "мудоеб",
+      "мудозвон",
+      "муйня",
+      "набздеть",
+      "наговнять",
+      "надристать",
+      "надрочить",
+      "наебать",
+      "наебнуться",
+      "наебывать",
+      "нассать",
+      "нахезать",
+      "нахуйник",
+      "насцать",
+      "обдристаться",
+      "обдристаться",
+      "обосранец",
+      "обосрать",
+      "обосцать",
+      "обосцаться",
+      "обсирать",
+      "опизде",
+      "отпиздячить",
+      "отпороть",
+      "отъеть",
+      "охуевательский",
+      "охуевать",
+      "охуевающий",
+      "охуеть",
+      "охуительный",
+      "охуячивать",
+      "охуячить",
+      "педрик",
+      "пердеж",
+      "пердение",
+      "пердеть",
+      "пердильник",
+      "перднуть",
+      "пердун",
+      "пердунец",
+      "пердунина",
+      "пердунья",
+      "пердуха",
+      "пердь",
+      "передок",
+      "пернуть",
+      "пидор",
+      "пизда",
+      "пиздануть",
+      "пизденка",
+      "пиздеть",
+      "пиздить",
+      "пиздища",
+      "пиздобратия",
+      "пиздоватый",
+      "пиздорванец",
+      "пиздорванка",
+      "пиздострадатель",
+      "пиздун",
+      "пиздюга",
+      "пиздюк",
+      "пиздячить",
+      "писять",
+      "питишка",
+      "плеха",
+      "подговнять",
+      "подъебнуться",
+      "поебать",
+      "поеть",
+      "попысать",
+      "посрать",
+      "поставить",
+      "поцоватый",
+      "презерватив",
+      "проблядь",
+      "проебать",
+      "промандеть",
+      "промудеть",
+      "пропиздеть",
+      "пропиздячить",
+      "пысать",
+      "разъеба",
+      "разъебай",
+      "распиздай",
+      "распиздеться",
+      "распиздяй",
+      "распроеть",
+      "растыка",
+      "сговнять",
+      "секель",
+      "серун",
+      "серька",
+      "сика",
+      "сикать",
+      "сикель",
+      "сирать",
+      "сирывать",
+      "скурвиться",
+      "скуреха",
+      "скурея",
+      "скуряга",
+      "скуряжничать",
+      "спиздить",
+      "срака",
+      "сраный",
+      "сранье",
+      "срать",
+      "срун",
+      "ссака",
+      "ссаки",
+      "ссать",
+      "старпер",
+      "струк",
+      "суходрочка",
+      "сцавинье",
+      "сцака",
+      "сцаки",
+      "сцание",
+      "сцать",
+      "сциха",
+      "сцуль",
+      "сцыха",
+      "сыкун",
+      "титечка",
+      "титечный",
+      "титка",
+      "титочка",
+      "титька",
+      "трипер",
+      "триппер",
+      "уеть",
+      "усраться",
+      "усцаться",
+      "фик",
+      "фуй",
+      "хезать",
+      "хер",
+      "херня",
+      "херовина",
+      "херовый",
+      "хитрожопый",
+      "хлюха",
+      "хуевина",
+      "хуевый",
+      "хуек",
+      "хуепромышленник",
+      "хуерик",
+      "хуесос",
+      "хуище",
+      "хуй",
+      "хуйня",
+      "хуйрик",
+      "хуякать",
+      "хуякнуть",
+      "целка",
+      "шлюха",
+    ];
+    var arrayQuerySel = [
+      "#accelerator-page > div.content > div > div.box-content.cq-dd-image > div > div.billboard.billboard-image-sets-height > div > div.billboard-inner > div.billboard-paragraph > div > div > div",
+      "#global-ux > div.content.clearfix > div:nth-child(1) > div.billboard.section > div > div.billboard-inner > div.billboard-paragraph > div > div.richtext.section > div > div",
+    ];
+
+    var index = 0;
+    var textContainer = null;
+    while (textContainer == null) {
+      if (index > arrayQuerySel.length - 1) {
+        break;
+      }
+      textContainer = document.querySelector(arrayQuerySel[index]);
+      index += 1;
+    }
+
+    if (textContainer != null) {
+      for (const child of textContainer.children) {
+        console.log(child.textContent);
+        child.textContent = ReplaceByRandElmArray(
+          child.textContent,
+          arrayRusskiMat
+        );
+      }
+    }
+  });
+}
 
 const className = "highlight-heading-ext";
 const headings = {
@@ -371,7 +701,7 @@ function HighlightHeading() {
     return Object.getOwnPropertyNames(headings)
       .map(
         (h) =>
-          `<p style="background-color: ${headings[h].bg}; color: ${headings[h].color}">Heading : ${h}, count: ${headings[h].count}</p>`
+          `<p style="background-color: ${headings[h].bg}; color: ${headings[h].color}">Heading : ${h}, Count: ${headings[h].count}</p>`
       )
       .join("");
   }
@@ -457,6 +787,8 @@ function CatErrors() {
     if (!gmc.get("catErrors")) return;
 
     var errorText = document.querySelector("body > header > title");
+    var errorImage =
+      '<img style="display: block;-webkit-user-select: none; display: block; margin-left: auto; margin-right: auto; width: 50%;" src="https://cataas.com/cat/says/';
     if (
       errorText != null &&
       errorText.textContent == "AEM Permissions Required"
@@ -464,17 +796,30 @@ function CatErrors() {
       document.body.innerHTML = "";
       document.body.insertAdjacentHTML(
         "afterbegin",
-        '<img style="display: block;-webkit-user-select: none; display: block; margin-left: auto; margin-right: auto; width: 50%;" src="https://http.cat/404">'
+        errorImage + '404%20error - Not Found">'
       );
+      return;
     }
 
     errorText = document.querySelector("body > h1");
-    if (errorText != null && errorText.textContent == "Forbidden") {
-      document.body.innerHTML = "";
-      document.body.insertAdjacentHTML(
-        "afterbegin",
-        '<img style="display: block;-webkit-user-select: none; display: block; margin-left: auto; margin-right: auto; width: 50%;" src="https://http.cat/403">'
-      );
+    if (errorText != null) {
+      if (errorText.textContent == "Forbidden") {
+        document.body.innerHTML = "";
+        document.body.insertAdjacentHTML(
+          "afterbegin",
+          errorImage + '403%20error - Forbidden">'
+        );
+        return;
+      }
+      if (errorText.textContent == "Bad Gateway") {
+        document.body.innerHTML = "";
+        document.body.insertAdjacentHTML(
+          "afterbegin",
+          errorImage + '503%20error - Bad Gateway">'
+        );
+        return;
+      }
+      return;
     }
   });
 }
@@ -526,17 +871,77 @@ function ShowAltTexts() {
 
 function WorkflowFixes() {
   AEM.waitForWorkflowTitleInput().then((form) => {
-    form.value = AEM.WFID;
+    var WorkflowID = AEM.WFID;
 
+    form.value = WorkflowID;
     AEM.getLinksInWF().forEach(
       (data) => (data.href = data.href.addBetaToLink())
     );
 
-    $(
+    /*$(
       "#cq-gen7 > div.wrapper-conf > div > div:nth-child(3) > div > div > div:nth-child(2)"
     ).bind("DOMNodeInserted", function () {
       alert("child is appended");
+    });*/
+
+    var requestButton = document.querySelector("#start-request-workflow");
+    requestButton.removeAttribute("disabled");
+
+    var stopWFButton = requestButton.cloneNode();
+    stopWFButton.removeAttribute("disabled");
+    stopWFButton.removeAttribute("data-workflow-name");
+    stopWFButton.id = "#stop-request-workflow";
+    stopWFButton.textContent = "Stop WF";
+
+    insertAfter(stopWFButton, requestButton);
+    insertAfter(document.createTextNode(" "), requestButton);
+
+    stopWFButton.addEventListener("click", function () {
+      GM_setValue("WorkflowID", WorkflowID);
+      window.open("https://wwwperf.brandeuauthorlb.ford.com/inbox");
     });
+  });
+}
+
+function CancelWF() {
+  var WorkflowID = GMGetADeleteValue("WorkflowID");
+  if (WorkflowID == "") {
+    throw new Error("WF id is not defined, inbox opened manually");
+  }
+
+  waitForElm("#cq-workflow-inbox-title").then((inboxTitle) => {
+    inboxTitle.value = WorkflowID;
+    inboxTitle.focus();
+
+    const ke = new KeyboardEvent("keydown", {
+      bubbles: true,
+      cancelable: true,
+      keyCode: 13,
+    });
+
+    setTimeout(function () {
+      inboxTitle.dispatchEvent(ke);
+
+      setTimeout(function () {
+        var wfTitles = document
+          .querySelectorAll(
+            "#cq-gen48 > div > table > tbody > tr > td:nth-child(6) > div"
+          )
+          .forEach((element) => {
+            if (element.textContent == WorkflowID) {
+              var pn = element.parentNode;
+              for (i = 1; i > 0; i--) {
+                pn = pn.parentNode;
+              }
+              pn.click();
+
+              console.log(pn.className);
+
+              // click not working
+            }
+          });
+      }, 1000);
+    }, 1000);
   });
 }
 
@@ -668,4 +1073,8 @@ function GMGetADeleteValue(value) {
   var val = GM_getValue(value, "");
   if (val != "") GM_setValue(value, "");
   return val;
+}
+
+function insertAfter(newNode, existingNode) {
+  existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
 }
