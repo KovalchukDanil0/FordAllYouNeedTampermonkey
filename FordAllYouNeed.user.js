@@ -5,7 +5,7 @@
 //
 // @author       Gomofob
 //
-// @version      0.7.6
+// @version      0.7.7
 //
 // @namespace    https://github.com/KovalchukDanil0/FordAllYouNeedTampermonkey
 //
@@ -72,11 +72,11 @@ const gmc = new GM_config({
       type: "checkbox",
       default: false,
     },
-    fixFindReplace: {
+    /*fixFindReplace: {
       label: "Fix Find&Replace !!NOT WORKING AT ALL!!",
       type: "checkbox",
       default: false,
-    },
+    },*/
     catErrors: {
       label: "Cat Errors",
       type: "checkbox",
@@ -104,11 +104,6 @@ let onInit = (config) =>
   });
 
 let init = onInit(gmc);
-
-/*example promise
-  init.then(() => {
-    let val = gmc.get('val_1');
-  });*/
 
 const menuCommandNames = {
   toLive: {
@@ -149,7 +144,7 @@ const menuCommandNames = {
   },
   openConfig: {
     command: null,
-    name: "OPEN CONFIG (WIP)",
+    name: "OPEN CONFIG",
   },
 };
 
@@ -241,22 +236,28 @@ function RemoveMenus() {
     ResourceResolverGetOrigPath();
   } else if (AEM.ifFindAndReplace) {
     FindAndReplaceFix();
-  } else if (AEM.ifAuthor) {
-    CatErrors();
   }
 
   if (AEM.ifAuthor || AEM.ifPerfProd || AEM.ifLive) {
     RusskiMatAsErrors();
+    CatErrors();
   }
 })();
 
 function RusskiMatAsErrors() {
   init.then(() => {
-    if (!gmc.get("russkiMatErrors")) return;
+    if (!gmc.get("russkiMatErrors") || document.title != "404") return;
 
-    function ReplaceByRandElmArray(string, replaceArray) {
+    function ReplaceByRandElmArray(elm, replaceArray) {
+      var string = elm.textContent;
       string = string.replace(/\S+/gm, function () {
-        return replaceArray[Math.floor(Math.random() * replaceArray.length)];
+        var replacedString =
+          replaceArray[Math.floor(Math.random() * replaceArray.length)];
+
+        if (elm.tagName != "P") {
+          replacedString = replacedString.toUpperCase();
+        }
+        return replacedString;
       });
 
       return string;
@@ -561,12 +562,50 @@ function RusskiMatAsErrors() {
 
     if (textContainer != null) {
       for (const child of textContainer.children) {
-        console.log(child.textContent);
-        child.textContent = ReplaceByRandElmArray(
-          child.textContent,
-          arrayRusskiMat
-        );
+        child.textContent = ReplaceByRandElmArray(child, arrayRusskiMat);
       }
+    }
+  });
+}
+
+function CatErrors() {
+  init.then(() => {
+    if (!gmc.get("catErrors")) return;
+
+    var errorText = document.querySelector("body > header > title");
+    var errorImage =
+      '<img style="display: block;-webkit-user-select: none; display: block; margin-left: auto; margin-right: auto; width: 50%;" src="https://cataas.com/cat/says/';
+    if (
+      errorText != null &&
+      errorText.textContent == "AEM Permissions Required"
+    ) {
+      document.body.innerHTML = "";
+      document.body.insertAdjacentHTML(
+        "afterbegin",
+        errorImage + '404%20error - Not Found">'
+      );
+      return;
+    }
+
+    errorText = document.querySelector("body > h1");
+    if (errorText != null) {
+      if (errorText.textContent == "Forbidden") {
+        document.body.innerHTML = "";
+        document.body.insertAdjacentHTML(
+          "afterbegin",
+          errorImage + '403%20error - Forbidden">'
+        );
+        return;
+      }
+      if (errorText.textContent == "Bad Gateway") {
+        document.body.innerHTML = "";
+        document.body.insertAdjacentHTML(
+          "afterbegin",
+          errorImage + '503%20error - Bad Gateway">'
+        );
+        return;
+      }
+      return;
     }
   });
 }
@@ -782,48 +821,6 @@ function FindAndReplaceFix() {
   });
 }
 
-function CatErrors() {
-  init.then(() => {
-    if (!gmc.get("catErrors")) return;
-
-    var errorText = document.querySelector("body > header > title");
-    var errorImage =
-      '<img style="display: block;-webkit-user-select: none; display: block; margin-left: auto; margin-right: auto; width: 50%;" src="https://cataas.com/cat/says/';
-    if (
-      errorText != null &&
-      errorText.textContent == "AEM Permissions Required"
-    ) {
-      document.body.innerHTML = "";
-      document.body.insertAdjacentHTML(
-        "afterbegin",
-        errorImage + '404%20error - Not Found">'
-      );
-      return;
-    }
-
-    errorText = document.querySelector("body > h1");
-    if (errorText != null) {
-      if (errorText.textContent == "Forbidden") {
-        document.body.innerHTML = "";
-        document.body.insertAdjacentHTML(
-          "afterbegin",
-          errorImage + '403%20error - Forbidden">'
-        );
-        return;
-      }
-      if (errorText.textContent == "Bad Gateway") {
-        document.body.innerHTML = "";
-        document.body.insertAdjacentHTML(
-          "afterbegin",
-          errorImage + '503%20error - Bad Gateway">'
-        );
-        return;
-      }
-      return;
-    }
-  });
-}
-
 var altTextContainerElm;
 
 var altShowed = false;
@@ -934,8 +931,6 @@ function CancelWF() {
                 pn = pn.parentNode;
               }
               pn.click();
-
-              console.log(pn.className);
 
               // click not working
             }
