@@ -15,7 +15,7 @@ if (urlPart == "/") {
 var beta = "";
 
 const regexWorkflow =
-  /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/workflow\/packages\/ESM\/\w\w(?:\w\w)?(?:\/\w\w\w\w)?\/(.+)\.html(?:.+)?/gm;
+  /(?:.+)?wwwperf\.brandeuauthorlb\.ford\.com(?:\/(?:editor\.html|cf#))?\/etc\/workflow\/packages\/ESM\/\w\w(?:(?:_)?\w\w)?(?:\/\w\w\w\w)?\/(.+)\.html(?:.+)?/gm;
 const regexWCMWorkflows =
   /wwwperf\.brandeuauthorlb\.ford\.com\/miscadmin#\/etc\/workflow\/packages\/ESM\//gm;
 const regexInbox = /wwwperf\.brandeuauthorlb\.ford\.com\/inbox/gm;
