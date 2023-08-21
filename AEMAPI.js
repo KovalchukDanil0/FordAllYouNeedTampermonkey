@@ -68,11 +68,7 @@ function waitForElm(selector, timeout = Number.MAX_VALUE) {
 
 String.prototype.addBetaToLink = function () {
   const regexDetermineBeta = /(.+)?(\/content\/guxeu(?:-beta)?\/(?:.+)?)/gm;
-  if (this.includes("/guxeu-beta/")) {
-    return this.replace(regexDetermineBeta, "$1/editor.html$2");
-  } else {
-    return this.replace(regexDetermineBeta, "$1/cf#$2");
-  }
+  return this.replace(regexDetermineBeta, "$1/editor.html$2");
 };
 
 class AEM {
