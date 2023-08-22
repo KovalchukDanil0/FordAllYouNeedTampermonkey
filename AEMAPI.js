@@ -215,6 +215,9 @@ class AEM {
       case "Ford of Hungary":
         fullPath = "HUHU";
         break;
+      case "Ford of Norway":
+        fullPath = "NONO";
+        break;
     }
 
     return fullPath;
