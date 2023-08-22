@@ -136,6 +136,48 @@ class AEM {
       default:
         fullPath = this.wfPathFromTitle(GM_getValue("WFTitle", ""));
         break;
+      case "Ford of Germany":
+        fullPath = "DEDE";
+        break;
+      case "Ford of Britain":
+        fullPath = "ENGB";
+        break;
+      case "Ford of Spain":
+        fullPath = "ESES";
+        break;
+      case "Ford of France":
+        fullPath = "FRFR";
+        break;
+      case "Ford of Italy":
+        fullPath = "ITIT";
+        break;
+      case "Ford of Netherlands":
+        fullPath = "NLNL";
+        break;
+      case "Ford of Ireland":
+        fullPath = "IEIE";
+        break;
+      case "Ford of Denmark":
+        fullPath = "DA_DK";
+        break;
+      case "Ford of Portugal":
+        fullPath = "PTPT";
+        break;
+      case "Ford of Norway":
+        fullPath = "NONO";
+        break;
+      case "Ford of Finland":
+        fullPath = "FIFI";
+        break;
+      case "Ford of Poland":
+        fullPath = "PLPL";
+        break;
+      case "Ford of Austria":
+        fullPath = "ATDE";
+        break;
+      case "Ford of Czech Republic":
+        fullPath = "CSCZ";
+        break;
       case "Ford of Belgium":
         fullPath = "BE";
         switch (localLanguage) {
@@ -150,6 +192,12 @@ class AEM {
             break;
         }
         break;
+      case "Ford of Hungary":
+        fullPath = "HUHU";
+        break;
+      case "Ford of Greece":
+        fullPath = "ELGR";
+        break;
       case "Ford of Switzerland":
         fullPath = "CH";
         switch (localLanguage) {
@@ -161,63 +209,16 @@ class AEM {
             break;
         }
         break;
-      case "Ford of Poland":
-        fullPath = "PLPL";
-        break;
-      case "Ford of Czech Republic":
-        fullPath = "CSCZ";
-        break;
-      case "Ford of Poland":
-        fullPath = "PLPL";
-        break;
-      case "Ford of Italy":
-        fullPath = "ITIT";
-        break;
-      case "Ford of Netherlands":
-        fullPath = "NLNL";
-        break;
-      case "Ford of Finland":
-        fullPath = "FIFI";
-        break;
-      case "Ford of Spain":
-        fullPath = "ESES";
-        break;
-      case "Ford of Britain":
-        fullPath = "ENGB";
-        break;
-      case "Ford of Germany":
-        fullPath = "DEDE";
-        break;
-      case "Ford of Austria":
-        fullPath = "ATDE";
+      case "Ford of Romania":
+        fullPath = "RORO";
         break;
       case "Ford of Luxembourg":
         fullPath = "LULU";
         break;
-      case "Ford of Denmark":
-        fullPath = "DA_DK";
-        break;
-      case "Ford of France":
-        fullPath = "FRFR";
-        break;
-      case "Ford of Romania":
-        fullPath = "RORO";
-        break;
-      case "Ford of Greece":
-        fullPath = "ELGR";
-        break;
-      case "Ford of Ireland":
-        fullPath = "IEIE";
-        break;
-      case "Ford of Portugal":
-        fullPath = "PTPT";
-        break;
-      case "Ford of Hungary":
-        fullPath = "HUHU";
-        break;
-      case "Ford of Norway":
-        fullPath = "NONO";
-        break;
+      // FOE
+      // FMNY
+      // FMNYDE
+      // MS
     }
 
     return fullPath;
